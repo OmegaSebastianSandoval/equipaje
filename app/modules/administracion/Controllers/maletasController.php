@@ -86,7 +86,7 @@ class Administracion_maletasController extends Administracion_mainController
     $puedeOver = Session::getInstance()->get('user_puedeover');
 
     if ($level == 3) {
-      $filters .= " AND maleta_over_tipo != ''"; 
+      $filters .= " AND maleta_over_tipo != ''";
     } elseif ($level == 2 && $puedeOver != 1) {
       $filters .= " AND (maleta_over_tipo = '' OR maleta_over_tipo IS NULL)";
     }
@@ -101,7 +101,7 @@ class Administracion_maletasController extends Administracion_mainController
     } else if (!$page) {
       $start = 0;
       $page = 1;
-      
+
       Session::getInstance()->set($this->namepageactual, $page);
     } else {
       Session::getInstance()->set($this->namepageactual, $page);
@@ -388,11 +388,19 @@ class Administracion_maletasController extends Administracion_mainController
         if ($this->_getSanitizedParam('connection_select') == '1') {
           $aerolinea = $aerolineasModel->getList("aerolinea_codigo = '" . $this->_getSanitizedParam('connection') . "'", "")[0];
         }
+        $dataMaletaActualizada = $maletasModel->getById($id);
         $mailModel = new Core_Model_Sendingemail($this->_view);
-        $mail = $mailModel->notificarRegistro($aerolinea, $data['maleta_codigo']);
-        $telefonos = explode(",", $aerolinea->aerolinea_telefono);
-        foreach ($telefonos as $key => $value) {
-          $this->notificarDorabot($value, $aerolinea->aerolinea_nombre, $data['maleta_codigo']);
+        $mail = $mailModel->notificarRegistro($aerolinea, $data['maleta_codigo'], $dataMaletaActualizada->maleta_over_tipo, $dataMaletaActualizada->maleta_over_lugar);
+        if (!Session::getInstance()->get('over')) {
+          $telefonos = explode(",", $aerolinea->aerolinea_telefono);
+        } else {
+          $telefonos = explode(",", $aerolinea->aerolinea_telefono_over);
+        }
+
+        if ($telefonos) {
+          foreach ($telefonos as $key => $value) {
+            $this->notificarDorabot($value, $aerolinea->aerolinea_nombre, $data['maleta_codigo']);
+          }
         }
       }
     }
@@ -435,8 +443,16 @@ class Administracion_maletasController extends Administracion_mainController
       if ($maleta->maleta_conexion == '1') {
         $aerolinea = $aerolineasModel->getList("aerolinea_codigo = '" . $maleta->maleta_aerolinea_conexion . "'", "")[0];
       }
-      $mail = $mailModel->notificarReclamo($aerolinea, $code);
-      $telefonos = explode(",", $aerolinea->aerolinea_telefono);
+
+      $esMaletaOver = $maleta->maleta_over_tipo ? true : false;
+      $overTipo = $maleta->maleta_over_tipo;
+      $overLugar = $maleta->maleta_over_lugar;
+      $mail = $mailModel->notificarReclamo($aerolinea, $code, $esMaletaOver, $overTipo, $overLugar);
+      if (!Session::getInstance()->get('over')) {
+        $telefonos = explode(",", $aerolinea->aerolinea_telefono);
+      } else {
+        $telefonos = explode(",", $aerolinea->aerolinea_telefono_over);
+      }
       foreach ($telefonos as $key => $value) {
         $this->notificarReclamoDorabot($value, $aerolinea->aerolinea_nombre, $code);
       }
@@ -451,8 +467,8 @@ class Administracion_maletasController extends Administracion_mainController
   }
   private function notificarDorabot($phone, $aerolinea, $codigoEquipaje)
   {
-    if (APPLICATION_ENV != 'production') {
-      $phone = '573142054891';
+    if (APPLICATION_ENV == 'development') {
+      $phone = '3142054891';
     }
     $url = 'https://api.botmaker.com/v2.0/chats-actions/trigger-intent';
     $accessToken = 'eyJhbGciOiJIUzUxMiJ9.eyJidXNpbmVzc0lkIjoiZG9yYWJvdCIsIm5hbWUiOiJBbGVqYW5kcmEgR2lyYWxkbyIsImFwaSI6dHJ1ZSwiaWQiOiJFNllSTzIxN3JhZERGQWZXVTRwc3pPeWRiVDUyIiwiZXhwIjoxODY1NjI0MjYzLCJqdGkiOiJFNllSTzIxN3JhZERGQWZXVTRwc3pPeWRiVDUyIn0.hHfUFmldSMQzuKYErjM6qjad0M22wzQtHRizq924KC2IuJxla6b62Gc2gH2ta57w4lE-SsoYyoSrDVZU9ixsWA';
@@ -497,6 +513,7 @@ class Administracion_maletasController extends Administracion_mainController
         "log" => curl_error($ch),
         "code" => $codigoEquipaje
       );
+      $logModel->insert($logData);
     } else {
       echo 'Response:' . $response;
     }
@@ -505,7 +522,9 @@ class Administracion_maletasController extends Administracion_mainController
   }
   private function notificarReclamoDorabot($phone, $aerolinea, $codigoEquipaje)
   {
-
+    if (APPLICATION_ENV == 'development') {
+      $phone = '3142054891';
+    }
     $url = 'https://api.botmaker.com/v2.0/chats-actions/trigger-intent';
     $accessToken = 'eyJhbGciOiJIUzUxMiJ9.eyJidXNpbmVzc0lkIjoiZG9yYWJvdCIsIm5hbWUiOiJBbGVqYW5kcmEgR2lyYWxkbyIsImFwaSI6dHJ1ZSwiaWQiOiJFNllSTzIxN3JhZERGQWZXVTRwc3pPeWRiVDUyIiwiZXhwIjoxODY1NjI0MjYzLCJqdGkiOiJFNllSTzIxN3JhZERGQWZXVTRwc3pPeWRiVDUyIn0.hHfUFmldSMQzuKYErjM6qjad0M22wzQtHRizq924KC2IuJxla6b62Gc2gH2ta57w4lE-SsoYyoSrDVZU9ixsWA';
     $data = [
@@ -549,6 +568,7 @@ class Administracion_maletasController extends Administracion_mainController
         "log" => curl_error($ch),
         "code" => $codigoEquipaje
       );
+      $logModel->insert($logData);
     } else {
       echo 'Response:' . $response;
     }

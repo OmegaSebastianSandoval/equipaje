@@ -238,6 +238,8 @@ class Administracion_aerolineasController extends Administracion_mainController
 		$data['aerolinea_contrasena'] = $this->_getSanitizedParam("aerolinea_contrasena");
 		$data['aerolinea_codigo'] = $this->_getSanitizedParam("aerolinea_codigo");
 		$data['aerolinea_imagen'] = "";
+		$data['aerolinea_correo_over'] = $this->_getSanitizedParam("aerolinea_correo_over");
+    $data['aerolinea_telefono_over'] = $this->_getSanitizedParam("aerolinea_telefono_over");
 		return $data;
 	}
 	/**

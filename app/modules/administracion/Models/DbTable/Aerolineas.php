@@ -29,7 +29,10 @@ class Administracion_Model_DbTable_Aerolineas extends Db_Table
 		$aerolinea_contrasena = $data['aerolinea_contrasena'];
 		$aerolinea_codigo = $data['aerolinea_codigo'];
 		$aerolinea_imagen = $data['aerolinea_imagen'];
-		$query = "INSERT INTO aerolineas( aerolinea_estado, aerolinea_nombre, aerolinea_correo, aerolinea_contrasena, aerolinea_codigo, aerolinea_imagen, aerolinea_telefono) VALUES ( '$aerolinea_estado', '$aerolinea_nombre', '$aerolinea_correo', '$aerolinea_contrasena', '$aerolinea_codigo', '$aerolinea_imagen', '$aerolinea_telefono')";
+		$aerolinea_correo_over = $data['aerolinea_correo_over'];
+		$aerolinea_telefono_over = $data['aerolinea_telefono_over'];
+
+		$query = "INSERT INTO aerolineas( aerolinea_estado, aerolinea_nombre, aerolinea_correo, aerolinea_contrasena, aerolinea_codigo, aerolinea_imagen, aerolinea_telefono, aerolinea_correo_over, aerolinea_telefono_over) VALUES ( '$aerolinea_estado', '$aerolinea_nombre', '$aerolinea_correo', '$aerolinea_contrasena', '$aerolinea_codigo', '$aerolinea_imagen', '$aerolinea_telefono', '$aerolinea_correo_over', '$aerolinea_telefono_over')";
 		$res = $this->_conn->query($query);
         return mysqli_insert_id($this->_conn->getConnection());
 	}
@@ -49,7 +52,9 @@ class Administracion_Model_DbTable_Aerolineas extends Db_Table
 		$aerolinea_contrasena = $data['aerolinea_contrasena'];
 		$aerolinea_codigo = $data['aerolinea_codigo'];
 		$aerolinea_imagen = $data['aerolinea_imagen'];
-		$query = "UPDATE aerolineas SET  aerolinea_estado = '$aerolinea_estado', aerolinea_nombre = '$aerolinea_nombre', aerolinea_correo = '$aerolinea_correo', aerolinea_contrasena = '$aerolinea_contrasena', aerolinea_codigo = '$aerolinea_codigo', aerolinea_imagen = '$aerolinea_imagen', aerolinea_telefono = '$aerolinea_telefono' WHERE aerolinea_id = '".$id."'";
+		$aerolinea_correo_over = $data['aerolinea_correo_over'];
+		$aerolinea_telefono_over = $data['aerolinea_telefono_over'];
+		$query = "UPDATE aerolineas SET  aerolinea_estado = '$aerolinea_estado', aerolinea_nombre = '$aerolinea_nombre', aerolinea_correo = '$aerolinea_correo', aerolinea_contrasena = '$aerolinea_contrasena', aerolinea_codigo = '$aerolinea_codigo', aerolinea_imagen = '$aerolinea_imagen', aerolinea_telefono = '$aerolinea_telefono', aerolinea_correo_over = '$aerolinea_correo_over', aerolinea_telefono_over = '$aerolinea_telefono_over' WHERE aerolinea_id = '".$id."'";
 		$res = $this->_conn->query($query);
 	}
 }

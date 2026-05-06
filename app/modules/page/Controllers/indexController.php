@@ -134,7 +134,11 @@ class Page_indexController extends Page_mainController
       $aerolineasModel = new Administracion_Model_DbTable_Aerolineas();
       $aerolinea = $aerolineasModel->getList("aerolinea_codigo = '" . $maleta->maleta_aerolinea . "'", "")[0];
       $mailModel = new Core_Model_Sendingemail($this->_view);
-      $mail = $mailModel->notificarReclamo($aerolinea, $code);
+
+      $esMaletaOver = $maleta->maleta_over_tipo ? true : false;
+      $overTipo = $maleta->maleta_over_tipo;
+      $overLugar = $maleta->maleta_over_lugar;
+      $mail = $mailModel->notificarReclamo($aerolinea, $code, $esMaletaOver, $overTipo, $overLugar);
       $data['log_tipo'] = 'RECLAMO';
       $data['log_maleta'] = $maleta->maleta_id . '' . $code;
       $data['log_fecha'] = date("Y-m-d H:i:s");

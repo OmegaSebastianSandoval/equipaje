@@ -91,13 +91,22 @@ class Core_Model_Sendingemail
       return 2;
     }
   }
-  public function notificarRegistro($user, $code)
+  public function notificarRegistro($user, $code, $overTipo = null, $overLugar = null)
   {
 
     $this->_view->user = $user;
     $this->_view->code = $code;
-    $correos = explode(",", $user->aerolinea_correo);
-    if (APPLICATION_ENV === 'production') {
+    $this->_view->overTipo = $overTipo;
+    $this->_view->overLugar = $overLugar;
+    if (!Session::getInstance()->get('over')) {
+      $correos = explode(",", $user->aerolinea_correo);
+    } else {
+      $correos = explode(",", $user->aerolinea_correo_over);
+    }
+
+    if (!$correos)
+      return 2;
+    if (APPLICATION_ENV != 'development') {
       foreach ($correos as $correo) {
         $this->email->getMail()->addAddress($correo, $user->aerolinea_nombre);
       }
@@ -116,12 +125,23 @@ class Core_Model_Sendingemail
       return 2;
     }
   }
-  public function notificarReclamo($user, $code)
+  public function notificarReclamo($user, $code, $esOver = false, $overTipo = null, $overLugar = null)
   {
     $this->_view->user = $user;
     $this->_view->code = $code;
-    $correos = explode(",", $user->aerolinea_correo);
-    if (APPLICATION_ENV === 'production') {
+    $this->_view->overTipo = $overTipo;
+    $this->_view->overLugar = $overLugar;
+    $esOver = false;
+    if (!Session::getInstance()->get('over') && !$esOver) {
+      $correos = explode(",", $user->aerolinea_correo);
+    } else {
+      $esOver = true;
+      $correos = explode(",", $user->aerolinea_correo_over);
+    }
+    $this->_view->esOver = $esOver;
+    if (!$correos)
+      return 2;
+    if (APPLICATION_ENV != 'development') {
       foreach ($correos as $correo) {
         $this->email->getMail()->addAddress($correo, $user->aerolinea_nombre);
       }
