@@ -12,7 +12,7 @@ class Administracion_indexController extends Controllers_Abstract
     public function indexAction()
     {
         $this->setLayout('administracion_login');
-        $this->getLayout()->setTitle("ACCESO A USUARIO");
+        $this->getLayout()->setTitle("ACCESO A USUARIO EQUIPAJE");
         $id = Session::getInstance()->get("kt_login_id");
         $level = Session::getInstance()->get("kt_login_level");
         if (isset($id) && $id > 0 && $level != 2) {

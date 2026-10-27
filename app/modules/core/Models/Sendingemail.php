@@ -112,7 +112,7 @@ class Core_Model_Sendingemail
       }
     }
 
-    $this->email->getMail()->addBCC('desarrollo8@omegawebsystems.com', 'Desarrollo Omega');
+    $this->email->getMail()->addBCC('desarrollo8+2@omegawebsystems.com', 'Desarrollo Omega');
     $content = $this->_view->getRoutPHP('/../app/modules/core/Views/templatesemail/notificarRegistro.php');
     $this->email->getMail()->Subject = 'Notificación Ingreso de Maletas';
     $this->email->getMail()->msgHTML($content);
@@ -131,7 +131,6 @@ class Core_Model_Sendingemail
     $this->_view->code = $code;
     $this->_view->overTipo = $overTipo;
     $this->_view->overLugar = $overLugar;
-    $esOver = false;
     if (!Session::getInstance()->get('over') && !$esOver) {
       $correos = explode(",", $user->aerolinea_correo);
     } else {
@@ -146,7 +145,7 @@ class Core_Model_Sendingemail
         $this->email->getMail()->addAddress($correo, $user->aerolinea_nombre);
       }
     }
-    $this->email->getMail()->addBCC("desarrollo8@omegawebsystems.com", "desarrollo");
+    $this->email->getMail()->addBCC("desarrollo8+2@omegawebsystems.com", "desarrollo");
 
     $content = $this->_view->getRoutPHP('/../app/modules/core/Views/templatesemail/notificarReclamo.php');
     $this->email->getMail()->Subject = 'Notificación Salida de Maletas';

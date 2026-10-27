@@ -42,6 +42,7 @@ class Administracion_maletasController extends Administracion_mainController
    */
   protected $namepages;
 
+  protected $namepageactual;
 
 
   /**
@@ -399,7 +400,11 @@ class Administracion_maletasController extends Administracion_mainController
 
         if ($telefonos) {
           foreach ($telefonos as $key => $value) {
-            $this->notificarDorabot($value, $aerolinea->aerolinea_nombre, $data['maleta_codigo']);
+            if (in_array($dataMaletaActualizada->maleta_over_tipo, ['1', '2', '3'])) {
+              $this->notificarRegistroOverDorabot($value, $aerolinea->aerolinea_nombre, $data['maleta_codigo'], $dataMaletaActualizada->maleta_over_tipo);
+            } else {
+              $this->notificarDorabot($value, $aerolinea->aerolinea_nombre, $data['maleta_codigo']);
+            }
           }
         }
       }
@@ -454,7 +459,11 @@ class Administracion_maletasController extends Administracion_mainController
         $telefonos = explode(",", $aerolinea->aerolinea_telefono_over);
       }
       foreach ($telefonos as $key => $value) {
-        $this->notificarReclamoDorabot($value, $aerolinea->aerolinea_nombre, $code);
+        if (in_array($overTipo, ['1', '2', '3'])) {
+          $this->notificarReclamoOverDorabot($value, $aerolinea->aerolinea_nombre, $code, $overTipo);
+        } else {
+          $this->notificarReclamoDorabot($value, $aerolinea->aerolinea_nombre, $code);
+        }
       }
       $data['log_tipo'] = 'RECLAMO';
       $data['log_maleta'] = $maleta->maleta_id . '' . $code;
@@ -575,16 +584,171 @@ class Administracion_maletasController extends Administracion_mainController
 
     curl_close($ch);
   }
+
+   private function notificarRegistroOverDorabot($phone, $aerolinea, $codigoEquipaje, $overTipo)
+  {
+    if (APPLICATION_ENV == 'development') {
+      $phone = '3142054891';
+    }
+    $template = '';
+    switch ($overTipo) {
+      case '1':
+        $template = 'sobredimensionado_contingencia2';
+        break;
+      case '2':
+        $template = 'sobredimensionado_inter1';
+        break;
+      case '3':
+        $template = 'sobredimensionado_nacional4';
+        break;
+    }
+    if ($template == '')
+      return;
+
+    $url = 'https://api.botmaker.com/v2.0/chats-actions/trigger-intent';
+    $accessToken = 'eyJhbGciOiJIUzUxMiJ9.eyJidXNpbmVzc0lkIjoiZG9yYWJvdCIsIm5hbWUiOiJBbGVqYW5kcmEgR2lyYWxkbyIsImFwaSI6dHJ1ZSwiaWQiOiJFNllSTzIxN3JhZERGQWZXVTRwc3pPeWRiVDUyIiwiZXhwIjoxODY1NjI0MjYzLCJqdGkiOiJFNllSTzIxN3JhZERGQWZXVTRwc3pPeWRiVDUyIn0.hHfUFmldSMQzuKYErjM6qjad0M22wzQtHRizq924KC2IuJxla6b62Gc2gH2ta57w4lE-SsoYyoSrDVZU9ixsWA';
+    $data = [
+      "chat" => [
+        "channelId" => "dorabot-whatsapp-573228220300",
+        "contactId" => "57" . trim($phone)
+      ],
+      "intentIdOrName" => $template,
+      "variables" => [
+        "aerolinea" => $aerolinea,
+        "codigoEquipaje" => $codigoEquipaje,
+        "overTipo" => $overTipo
+      ],
+      "tags" => [
+        "tagName" => true,
+        "anotherTag" => false
+      ],
+      "webhookPayload" => "string"
+    ];
+
+    $payload = json_encode($data);
+
+    $ch = curl_init($url);
+
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+      'Content-Type: application/json',
+      'access-token: ' . $accessToken
+    ]);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+
+    $response = curl_exec($ch);
+
+    if (curl_errno($ch)) {
+      echo 'Error:' . curl_error($ch);
+      $logModel = new Administracion_Model_DbTable_Logdorabot();
+      $logData = array(
+        "date" => date('Y-m-d'),
+        "log" => curl_error($ch),
+        "code" => $codigoEquipaje
+      );
+      $logModel->insert($logData);
+    } else {
+      echo 'Response:' . $response;
+    }
+
+    curl_close($ch);
+  }
+  private function notificarReclamoOverDorabot($phone, $aerolinea, $codigoEquipaje, $overTipo)
+  {
+    if (APPLICATION_ENV == 'development') {
+      $phone = '3142054891';
+    }
+	    if (!$overTipo)
+      return;
+    $overTemplate = '';
+    if ($overTipo == '2') {
+      $overTemplate = 'sobredimension_comodin';
+    } else {
+      $overTemplate = "equipaje_sobredimensionado_over" . $overTipo;
+    }
+    $url = 'https://api.botmaker.com/v2.0/chats-actions/trigger-intent';
+    $accessToken = 'eyJhbGciOiJIUzUxMiJ9.eyJidXNpbmVzc0lkIjoiZG9yYWJvdCIsIm5hbWUiOiJBbGVqYW5kcmEgR2lyYWxkbyIsImFwaSI6dHJ1ZSwiaWQiOiJFNllSTzIxN3JhZERGQWZXVTRwc3pPeWRiVDUyIiwiZXhwIjoxODY1NjI0MjYzLCJqdGkiOiJFNllSTzIxN3JhZERGQWZXVTRwc3pPeWRiVDUyIn0.hHfUFmldSMQzuKYErjM6qjad0M22wzQtHRizq924KC2IuJxla6b62Gc2gH2ta57w4lE-SsoYyoSrDVZU9ixsWA';
+	  $variables = [
+      "aerolinea" => $aerolinea,
+      "codigoEquipaje" => $codigoEquipaje,
+      "overTipo" => $overTipo
+    ];
+    if ($overTipo == '2') {
+      $variables["comodin"] = "sobredimensionado 2 - Internacional";
+    }
+    $data = [
+      "chat" => [
+        "channelId" => "dorabot-whatsapp-573228220300",
+        "contactId" => "57" . trim($phone)
+      ],
+      "intentIdOrName" => $overTemplate,
+      "variables" => $variables,
+      "tags" => [
+        "tagName" => true,
+        "anotherTag" => false
+      ],
+      "webhookPayload" => "string"
+    ];
+
+    $payload = json_encode($data);
+
+    $ch = curl_init($url);
+
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+      'Content-Type: application/json',
+      'access-token: ' . $accessToken
+    ]);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+
+    $response = curl_exec($ch);
+
+    if (curl_errno($ch)) {
+      echo 'Error:' . curl_error($ch);
+      $logModel = new Administracion_Model_DbTable_Logdorabot();
+      $logData = array(
+        "date" => date('Y-m-d'),
+        "log" => curl_error($ch),
+        "code" => $codigoEquipaje
+      );
+      $logModel->insert($logData);
+    } else {
+      echo 'Response:' . $response;
+    }
+
+    curl_close($ch);
+  }
+
+
   public function testing1Action()
   {
     echo "hola";
     //enviar msj dorabot
-    $this->notificarDorabot('3124624763', 'AerolineaTest', 'test123');
+    $this->notificarDorabot('3142054891', 'AerolineaTest', 'test123', );
   }
   public function testing2Action()
   {
     echo "hola";
     //enviar msj dorabot
-    $this->notificarReclamoDorabot('3124624763', 'AerolineaTest', 'test123');
+    $this->notificarReclamoDorabot('3142054891', 'AerolineaTest', 'test123');
   }
+  public function testing3Action()
+  {
+    echo "hola";
+    //enviar msj dorabot
+    $this->notificarRegistroOverDorabot('3142054891', 'AerolineaTest', 'test123', '2');
+  }
+  public function testing4Action()
+  {
+    echo "hola";
+    //enviar msj dorabot
+    $this->notificarReclamoOverDorabot('3142054891', 'AerolineaTest', 'test123', '2');
+  }
+
 }
