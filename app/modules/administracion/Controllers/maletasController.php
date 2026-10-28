@@ -44,6 +44,13 @@ class Administracion_maletasController extends Administracion_mainController
 
   protected $namepageactual;
 
+  /**
+   * Maximo de maletas por lote en cada envio de la pantalla de registro y de reclamo.
+   * @var integer
+   */
+  protected $maxLoteRegistro = 30;
+  protected $maxLoteReclamo = 30;
+
 
   /**
    * Inicializa las variables principales del controlador maletas .
@@ -378,6 +385,7 @@ class Administracion_maletasController extends Administracion_mainController
     $this->_view->aerolineas_iata = $this->getAerolineasIata();
     $this->_view->csrf_lote = $this->csrfLote();
     $this->_view->tipo_vuelo = Core_Model_Vuelos::tipoPorSesion();
+    $this->_view->max_lote = $this->maxLoteRegistro;
   }
 
   public function reclamarAction()
@@ -387,6 +395,7 @@ class Administracion_maletasController extends Administracion_mainController
       exit;
     }
     $this->_view->csrf_lote = $this->csrfLote();
+    $this->_view->max_lote = $this->maxLoteReclamo;
   }
 
   /**
@@ -412,7 +421,7 @@ class Administracion_maletasController extends Administracion_mainController
     $this->setLayout('blanco');
     header('Content-Type: application/json');
     if (!$this->puedeOperar() || !$this->csrfLoteValido()) {
-      die(json_encode(['status' => 'error', 'mensaje' => 'Sesión vencida, recargue la página']));
+      die(json_encode(['status' => 'error', 'codigo' => 'sesion', 'mensaje' => 'Sesión vencida, recargue la página']));
     }
     $this->prepararProcesoLote();
     $res = $this->registrarMaleta([
@@ -449,7 +458,7 @@ class Administracion_maletasController extends Administracion_mainController
     }
     $maleta = $maletasModel->getList("maleta_codigo = '$code'", "")[0] ?? null;
     if ($maleta) {
-      return ['status' => 'error', 'mensaje' => 'La maleta ya está registrada'];
+      return ['status' => 'error', 'codigo' => 'existe', 'mensaje' => 'La maleta ya está registrada'];
     }
 
     $data = array();
@@ -632,7 +641,7 @@ class Administracion_maletasController extends Administracion_mainController
     $this->setLayout('blanco');
     header('Content-Type: application/json');
     if (!$this->puedeOperar() || !$this->csrfLoteValido()) {
-      die(json_encode(['status' => 'error', 'mensaje' => 'Sesión vencida, recargue la página']));
+      die(json_encode(['status' => 'error', 'codigo' => 'sesion', 'mensaje' => 'Sesión vencida, recargue la página']));
     }
     $this->prepararProcesoLote();
     die(json_encode($this->reclamarMaleta($this->_getSanitizedParam("maleta_codigo"))));
@@ -651,7 +660,7 @@ class Administracion_maletasController extends Administracion_mainController
       return ['status' => 'error', 'mensaje' => 'No encontrada'];
     }
     if ($maleta->maleta_estado != '') {
-      return ['status' => 'error', 'mensaje' => 'Ya reclamada'];
+      return ['status' => 'error', 'codigo' => 'existe', 'mensaje' => 'Ya reclamada'];
     }
     $maletasModel->editField($maleta->maleta_id, 'maleta_estado', '1');
     $maletasModel->editField($maleta->maleta_id, 'maleta_fsalida', date("Y-m-d"));

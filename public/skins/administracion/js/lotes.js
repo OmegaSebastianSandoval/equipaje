@@ -19,6 +19,12 @@ document.addEventListener("DOMContentLoaded", function () {
   let pasoGrupo = null; // { i, total } del grupo que se muestra en el modal
   let ultimoAsignado = null; // ultima maleta a la que se le puso vuelo (para seguir con la siguiente al cerrar)
   let notaSeleccion = ""; // aviso temporal bajo la seleccion (ej. "se desmarcaron 2 maletas")
+  // Maximo de maletas por lote (lo define el controlador)
+  const MAX_LOTE = parseInt(cfg.max, 10) > 0 ? parseInt(cfg.max, 10) : 30;
+  // Tiempo maximo por maleta: correo (30 s) + WhatsApp (15 s por telefono) con margen
+  const TIEMPO_POR_MALETA = 90000;
+  let detener = false; // el usuario pidio detener el envio
+  let continuarPausa = null; // envio en pausa esperando conexion
 
   // ---------------------------------------------------------------
   // Utilidades
@@ -137,7 +143,9 @@ document.addEventListener("DOMContentLoaded", function () {
       if (Array.isArray(data)) {
         filas = data.map(function (f) {
           if (f.estado === "enviando") {
+            // Pudo quedar guardada en el servidor: al reintentar, "ya existe" cuenta como hecha
             f.estado = "pendiente";
+            f.intentos = (f.intentos || 0) + 1;
           }
           return f;
         });
@@ -287,7 +295,7 @@ document.addEventListener("DOMContentLoaded", function () {
       contador.textContent =
         n === 0
           ? "Apunta la cámara a cada etiqueta"
-          : "En la lista: " + n + (n === 1 ? " maleta" : " maletas");
+          : "En la lista: " + n + " de " + MAX_LOTE;
     }
     if (listo) {
       listo.textContent = n === 0 ? "Listo" : "Listo (" + n + ")";
@@ -382,6 +390,9 @@ document.addEventListener("DOMContentLoaded", function () {
       aviso("La maleta " + codigo + " ya está en la lista.", "error");
       return;
     }
+    if (loteLleno(codigo)) {
+      return;
+    }
     const errorConexion = function () {
       aviso(
         "No se pudo consultar la maleta " + codigo + ". Revisa la conexión.",
@@ -392,7 +403,7 @@ document.addEventListener("DOMContentLoaded", function () {
       pedir("/administracion/maletas/getAirline", {
         data: { code: codigo.substring(1, 4), full_code: codigo },
       }).then(function (data) {
-        if (buscarFila(codigo)) {
+        if (buscarFila(codigo) || loteLleno(codigo)) {
           return;
         }
         if (data.status === "success") {
@@ -431,7 +442,7 @@ document.addEventListener("DOMContentLoaded", function () {
       pedir("/administracion/maletas/getBag", {
         data: { code: codigo },
       }).then(function (data) {
-        if (buscarFila(codigo)) {
+        if (buscarFila(codigo) || loteLleno(codigo)) {
           return;
         }
         const fila = {
@@ -486,6 +497,30 @@ document.addEventListener("DOMContentLoaded", function () {
         render();
       }, errorConexion);
     }
+  }
+
+  // Maletas que ocupan cupo en el lote (las ya enviadas salen de la lista)
+  function enLote() {
+    return filas.filter(function (f) {
+      return f.estado !== "ok";
+    }).length;
+  }
+
+  function loteLleno(codigo) {
+    if (enLote() < MAX_LOTE) {
+      return false;
+    }
+    aviso(
+      "Máximo " +
+        MAX_LOTE +
+        " maletas por lote. " +
+        (esRegistro ? "Registra" : "Reclama") +
+        " estas primero y luego sigue con " +
+        codigo +
+        ".",
+      "error",
+    );
+    return true;
   }
 
   // Para la camara (main.js) en modo continuo
@@ -1280,14 +1315,24 @@ document.addEventListener("DOMContentLoaded", function () {
           '<p class="lote-cargando-progreso" aria-live="polite"></p>' +
           '<div class="lote-cargando-barra"><span></span></div>' +
           '<p class="lote-cargando-codigo"></p>' +
+          '<p class="lote-cargando-pausa" role="status" aria-live="assertive" hidden></p>' +
           '<p id="lote-cargando-detalle" class="lote-cargando-detalle">No cierres ni recargues esta página. Cada maleta tarda unos segundos porque se notifica a la aerolínea.</p>' +
+          '<button type="button" class="lote-cargando-detener">Detener</button>' +
           "</div></div>",
       );
       document.body.appendChild(c);
+      c.querySelector(".lote-cargando-detener").addEventListener(
+        "click",
+        pedirDetener,
+      );
     }
     c.querySelector("h3").textContent = esRegistro
       ? "Registrando maletas"
       : "Reclamando maletas";
+    const boton = c.querySelector(".lote-cargando-detener");
+    boton.disabled = false;
+    boton.textContent = "Detener";
+    pausaCargando("");
     actualizarCargando(0, total, "");
     c.classList.add("mostrar");
     document.body.classList.add("lote-cargando-abierto");
@@ -1318,6 +1363,53 @@ document.addEventListener("DOMContentLoaded", function () {
       : "";
   }
 
+  // Mensaje de pausa (sin conexion). Vacio lo oculta.
+  function pausaCargando(texto) {
+    const c = byId("lote-cargando");
+    const p = c ? c.querySelector(".lote-cargando-pausa") : null;
+    if (!p) {
+      return;
+    }
+    p.hidden = !texto;
+    p.innerHTML = texto
+      ? '<i class="fa-solid fa-wifi"></i> <span>' + esc(texto) + "</span>"
+      : "";
+  }
+
+  // Detiene el lote al terminar la maleta en curso (o de inmediato si esta en pausa)
+  function pedirDetener() {
+    detener = true;
+    const boton = document.querySelector(".lote-cargando-detener");
+    if (boton) {
+      boton.disabled = true;
+      boton.textContent = continuarPausa
+        ? "Deteniendo…"
+        : "Deteniendo… termina la maleta actual";
+    }
+    reanudar();
+  }
+
+  function esperarConexion(continuar) {
+    continuarPausa = continuar;
+    pausaCargando(
+      "Sin conexión. El envío sigue solo cuando vuelva la señal.",
+    );
+    const alVolver = function () {
+      window.removeEventListener("online", alVolver);
+      reanudar();
+    };
+    window.addEventListener("online", alVolver);
+  }
+
+  function reanudar() {
+    const continuar = continuarPausa;
+    continuarPausa = null;
+    pausaCargando("");
+    if (continuar) {
+      continuar();
+    }
+  }
+
   function ocultarCargando() {
     const c = byId("lote-cargando");
     if (c) {
@@ -1336,7 +1428,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // Envio (una por una)
   // ---------------------------------------------------------------
   function enviarTodas() {
-    const cola = listaParaEnviar();
+    let cola = listaParaEnviar();
     if (cola.length === 0 || enviando) {
       return;
     }
@@ -1347,42 +1439,83 @@ document.addEventListener("DOMContentLoaded", function () {
       );
       return;
     }
+    // Lotes guardados antes del limite: se envian de a MAX_LOTE
+    cola = cola.slice(0, MAX_LOTE);
     enviando = true;
+    detener = false;
     const resumen = byId("lote-resumen");
     resumen.innerHTML = "";
     mostrarCargando(cola.length);
     let ok = 0;
     let fallidas = 0;
     let i = 0;
+    let fin = ""; // "", "detenido" o "sesion"
+    const yaEstaban = []; // se cortaron en un intento anterior pero si quedaron guardadas
 
     function terminar() {
       enviando = false;
+      continuarPausa = null;
       actualizarCargando(cola.length, cola.length, "");
       ocultarCargando();
+      const pendientes = filas.filter(function (f) {
+        return f.estado === "pendiente";
+      }).length;
+      const hecho = esRegistro ? "Registradas: " : "Reclamadas: ";
+      let texto;
+      let esError = fallidas > 0 || fin === "sesion";
+      if (fin === "sesion") {
+        texto =
+          "<strong>Sesión vencida.</strong> Recarga la página e inicia sesión; las maletas pendientes siguen en la lista. " +
+          hecho +
+          "<strong>" +
+          ok +
+          "</strong>";
+      } else {
+        texto = hecho + "<strong>" + ok + "</strong>";
+        if (fin === "detenido") {
+          texto =
+            "<strong>Envío detenido.</strong> " +
+            texto +
+            " · Sin enviar: <strong>" +
+            pendientes +
+            "</strong> (siguen en la lista)";
+        }
+      }
+      if (fallidas) {
+        texto +=
+          " · Con error: <strong>" +
+          fallidas +
+          "</strong> (quedan en la lista para reintentar)";
+      }
+      if (yaEstaban.length) {
+        esError = true;
+        texto +=
+          "<br>" +
+          (yaEstaban.length === 1 ? "La maleta " : "Las maletas ") +
+          "<strong>" +
+          esc(yaEstaban.join(", ")) +
+          "</strong> ya estaba" +
+          (yaEstaban.length === 1 ? "" : "n") +
+          (esRegistro ? " registrada" : " reclamada") +
+          (yaEstaban.length === 1 ? "" : "s") +
+          " de un intento anterior que se cortó. Confirma que la aerolínea recibió el aviso.";
+      }
       resumen.innerHTML =
         '<div class="lote-resumen ' +
-        (fallidas ? "aviso-error" : "aviso-ok") +
+        (esError ? "aviso-error" : "aviso-ok") +
         '">' +
         '<i class="fa-solid ' +
-        (fallidas ? "fa-circle-exclamation" : "fa-circle-check") +
+        (esError ? "fa-circle-exclamation" : "fa-circle-check") +
         '"></i><span>' +
-        (esRegistro ? "Registradas: " : "Reclamadas: ") +
-        "<strong>" +
-        ok +
-        "</strong>" +
-        (fallidas
-          ? " · Con error: <strong>" +
-            fallidas +
-            "</strong> (quedan en la lista para reintentar)"
-          : "") +
+        texto +
         "</span></div>";
       clearTimeout(resumenTimer);
-      resumenTimer = setTimeout(
-        function () {
+      // Los avisos importantes no se ocultan solos
+      if (!esError && fin === "") {
+        resumenTimer = setTimeout(function () {
           resumen.innerHTML = "";
-        },
-        fallidas ? 15000 : 8000,
-      );
+        }, 8000);
+      }
       setTimeout(function () {
         filas = filas.filter(function (f) {
           return f.estado !== "ok";
@@ -1394,17 +1527,24 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function siguiente() {
-      if (i >= cola.length) {
+      if (detener) {
+        fin = "detenido";
+      }
+      if (fin || i >= cola.length) {
         terminar();
+        return;
+      }
+      if (navigator.onLine === false) {
+        esperarConexion(siguiente);
         return;
       }
       const f = cola[i];
       actualizarCargando(i, cola.length, f.codigo);
-      i++;
       f.estado = "enviando";
       f.mensaje = "";
       // Durante el envio solo se redibuja la fila que cambia
       renderFila(f);
+      let repetir = false;
       const data = { csrf: csrf, maleta_codigo: f.codigo };
       let url = "/administracion/maletas/reclamoAjax";
       if (esRegistro) {
@@ -1415,25 +1555,47 @@ document.addEventListener("DOMContentLoaded", function () {
         data.vuelo_id = f.vuelo ? f.vuelo.id : "";
         data.vuelo_manual = f.vuelo ? "" : f.manual;
       }
-      pedir(url, { data: data, timeout: 300000 })
+      pedir(url, { data: data, timeout: TIEMPO_POR_MALETA })
         .then(
           function (res) {
             if (res.status === "ok") {
               f.estado = "ok";
               ok++;
+            } else if (res.codigo === "existe" && f.intentos) {
+              // Un intento anterior se corto pero el servidor si la guardo
+              f.estado = "ok";
+              ok++;
+              yaEstaban.push(f.codigo);
+            } else if (res.codigo === "sesion") {
+              f.estado = "pendiente";
+              fin = "sesion";
             } else {
               f.estado = "error";
               f.mensaje = res.mensaje || "Error";
               fallidas++;
             }
           },
-          function () {
-            f.estado = "error";
-            f.mensaje = "Error de conexión, intenta de nuevo";
-            fallidas++;
+          function (err) {
+            // El servidor pudo guardarla aunque la respuesta no llego
+            f.intentos = (f.intentos || 0) + 1;
+            if (navigator.onLine === false) {
+              // Se cayo la red: se repite esta misma maleta cuando vuelva
+              f.estado = "pendiente";
+              repetir = true;
+            } else {
+              f.estado = "error";
+              f.mensaje =
+                err && err.name === "AbortError"
+                  ? "El servidor tardó demasiado. Reintenta: si sí quedó guardada se marcará sola."
+                  : "Error de conexión, intenta de nuevo";
+              fallidas++;
+            }
           },
         )
         .then(function () {
+          if (!repetir) {
+            i++;
+          }
           renderFila(f);
           siguiente();
         });

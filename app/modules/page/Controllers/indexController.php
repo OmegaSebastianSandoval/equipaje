@@ -6,6 +6,11 @@
 
 class Page_indexController extends Page_mainController
 {
+  /**
+   * Maximo de maletas por lote en cada envio del reclamo publico.
+   * @var integer
+   */
+  protected $maxLoteReclamo = 30;
 
 
   // Función correspondiente a la vista index, vista principal del aplicativo
@@ -30,6 +35,7 @@ class Page_indexController extends Page_mainController
     // La sesion (y con ella el CSRF) solo arranca si el usuario acepto las cookies (ver bootstrap.php)
     $this->_view->consentimiento = ($_COOKIE['consentimiento'] ?? '') === 'aceptado';
     $this->_view->csrf_reclamos = $this->_view->consentimiento ? $this->csrfReclamos() : '';
+    $this->_view->max_lote = $this->maxLoteReclamo;
   }
 
   /**
@@ -68,7 +74,7 @@ class Page_indexController extends Page_mainController
     $this->setLayout('blanco');
     header('Content-Type: application/json');
     if (!$this->csrfReclamosValido()) {
-      die(json_encode(['status' => 'error', 'mensaje' => 'Sesión vencida, recargue la página']));
+      die(json_encode(['status' => 'error', 'codigo' => 'sesion', 'mensaje' => 'Sesión vencida, recargue la página']));
     }
     // Una maleta por peticion: tiempo para el correo, terminar aunque cierren la pagina y liberar la sesion
     set_time_limit(300);
@@ -92,7 +98,7 @@ class Page_indexController extends Page_mainController
       return ['status' => 'error', 'mensaje' => 'La maleta no está registrada'];
     }
     if ($maleta->maleta_estado != '') {
-      return ['status' => 'error', 'mensaje' => 'La maleta ya fue reclamada'];
+      return ['status' => 'error', 'codigo' => 'existe', 'mensaje' => 'La maleta ya fue reclamada'];
     }
     $maletasModel->editField($maleta->maleta_id, 'maleta_estado', '1');
     $maletasModel->editField($maleta->maleta_id, 'maleta_fsalida', date("Y-m-d"));

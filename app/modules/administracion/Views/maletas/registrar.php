@@ -193,6 +193,7 @@ if ($overSesion) {
 <script>
   window.loteConfig = {
     modo: 'registro',
+    max: <?php echo (int) $this->max_lote; ?>,
     aerolineas: <?php echo json_encode($this->list_maleta_aerolinea, JSON_HEX_TAG | JSON_UNESCAPED_UNICODE); ?>,
     aerolineasIata: <?php echo json_encode($this->aerolineas_iata, JSON_HEX_TAG); ?>
   };

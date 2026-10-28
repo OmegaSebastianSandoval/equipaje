@@ -2774,6 +2774,49 @@ body.lote-cargando-abierto{
   font-size: 13px;
   line-height: 1.4;
 }
+.lote-cargando-pausa{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 14px 0 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background-color: rgba(255, 211, 68, 0.12);
+  color: var(--yellow);
+  font-size: 14px;
+  line-height: 1.35;
+  text-align: left;
+}
+.lote-cargando-pausa[hidden]{
+  display: none;
+}
+.lote-cargando-detener{
+  width: 100%;
+  min-height: 44px;
+  margin-top: 18px;
+  padding: 8px 14px;
+  border: 1px solid #5a5a5a;
+  border-radius: 8px;
+  background-color: transparent;
+  color: var(--white);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+.lote-cargando-detener:hover:not(:disabled){
+  border-color: var(--yellow);
+  color: var(--yellow);
+}
+.lote-cargando-detener:focus-visible{
+  outline: 2px solid var(--yellow);
+  outline-offset: 2px;
+}
+.lote-cargando-detener:disabled{
+  color: #9b9a9a;
+  cursor: wait;
+}
 @media (prefers-reduced-motion: reduce){
   .lote-cargando-spinner{
     animation-duration: 2.5s;

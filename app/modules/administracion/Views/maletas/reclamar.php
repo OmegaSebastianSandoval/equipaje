@@ -100,7 +100,7 @@
 </div>
 
 <script>
-  window.loteConfig = { modo: 'reclamo' };
+  window.loteConfig = { modo: 'reclamo', max: <?php echo (int) $this->max_lote; ?> };
 </script>
 <script src="/skins/administracion/js/lotes.js?v=<?= filemtime(PUBLIC_PATH . 'skins/administracion/js/lotes.js') ?>"></script>
 
