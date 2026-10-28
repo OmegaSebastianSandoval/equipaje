@@ -2199,6 +2199,280 @@ header {
   color: var(--yellow);
 }
 
+/* Seleccion rapida por aerolinea */
+.maletas-bx .lote-seleccion{
+  padding: 12px 15px;
+  border-radius: 10px;
+  background-color: var(--white);
+}
+.maletas-bx .lote-seleccion[hidden]{
+  display: none;
+}
+.maletas-bx .lote-seleccion-cab{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 24px;
+  margin-bottom: 8px;
+}
+.maletas-bx .lote-seleccion-titulo{
+  font-size: 13px;
+  font-weight: 600;
+  color: #6e6e6e;
+}
+.maletas-bx .lote-quitar-sel{
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 0;
+  border: none;
+  background: none;
+  color: var(--black);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.maletas-bx .lote-quitar-sel[hidden]{
+  display: none;
+}
+.maletas-bx .lote-quitar-sel:disabled{
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.maletas-bx .lote-chips-wrap{
+  position: relative;
+}
+.maletas-bx .lote-chips{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.maletas-bx .lote-chip{
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 100%;
+  height: 26px;
+  margin: 0;
+  padding: 0 10px;
+  border: 1px solid var(--black);
+  border-radius: 999px;
+  background-color: var(--white);
+  color: var(--black);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.maletas-bx .lote-chip:hover{
+  background-color: #fff6d6;
+}
+.maletas-bx .lote-chip.activo{
+  background-color: var(--black);
+  color: var(--yellow);
+}
+.maletas-bx .lote-chip:focus-visible{
+  outline: 2px solid var(--yellow);
+  outline-offset: 2px;
+}
+.maletas-bx .lote-chip:disabled{
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+/* Nombres largos de aerolinea: se cortan con "..." y el nombre completo queda en el title */
+.maletas-bx .lote-chip-texto{
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
+}
+.maletas-bx .lote-chip-n{
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: #9b9a9a;
+  font-variant-numeric: tabular-nums;
+}
+.maletas-bx .lote-chip.activo .lote-chip-n{
+  color: var(--white);
+}
+.maletas-bx .lote-chips-vacio{
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  font-size: 13px;
+  color: #198754;
+}
+.maletas-bx .lote-seleccion-opciones{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #ececec;
+}
+.maletas-bx .lote-ayuda{
+  margin: 10px 0 0;
+  padding: 8px 10px;
+  border-left: 3px solid var(--yellow);
+  border-radius: 0 5px 5px 0;
+  background-color: #fafafa;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #4a4a4a;
+}
+.maletas-bx .lote-ayuda:empty{
+  display: none;
+}
+
+/* Celular: las pills bajan a la siguiente linea cuando no caben */
+@media screen and (max-width: 575.98px){
+  .maletas-bx .lote-seleccion{
+    padding: 12px 12px 4px;
+  }
+  .maletas-bx .lote-chip-texto{
+    max-width: 140px;
+  }
+  .maletas-bx .lote-quitar-sel{
+    min-height: 40px;
+    margin: -8px 0;
+  }
+  /* Interruptores como lista de ajustes: texto a la izquierda, interruptor a la derecha */
+  .maletas-bx .lote-seleccion-opciones{
+    flex-direction: column;
+    gap: 0;
+    padding-top: 0;
+  }
+  .maletas-bx .lote-seleccion-opciones .lote-switch{
+    justify-content: space-between;
+    min-height: 44px;
+    font-size: 14px;
+  }
+  .maletas-bx .lote-seleccion-opciones .lote-switch + .lote-switch{
+    border-top: 1px solid #f3f3f3;
+  }
+  .maletas-bx .lote-seleccion-opciones .lote-switch label{
+    order: -1;
+    flex: 1;
+    padding: 10px 0;
+  }
+  .maletas-bx .lote-seleccion-opciones .lote-switch .form-check-input{
+    flex-shrink: 0;
+  }
+  .maletas-bx .lote-ayuda{
+    margin-bottom: 8px;
+  }
+}
+
+/* Lista agrupada por aerolinea */
+.maletas-bx .lote-grupo-cab{
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 15px;
+  background-color: var(--black);
+  color: var(--white);
+}
+.maletas-bx .lote-grupo-cab .form-check-input{
+  width: 1.2em;
+  height: 1.2em;
+  margin: 0;
+  flex-shrink: 0;
+  cursor: pointer;
+  border: 2px solid var(--white);
+  background-color: transparent;
+}
+/* La marca de Bootstrap es blanca: se deja el fondo negro del encabezado para que se vea */
+.maletas-bx .lote-grupo-cab .form-check-input:checked,
+.maletas-bx .lote-grupo-cab .form-check-input:indeterminate{
+  background-color: transparent;
+  border-color: var(--yellow);
+}
+.maletas-bx .lote-grupo-info{
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.maletas-bx .lote-grupo-info strong{
+  color: var(--yellow);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.maletas-bx .lote-grupo-info span{
+  font-size: 13px;
+  color: #cfcfcf;
+}
+.maletas-bx .lote-grupo-asignar{
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  padding: 7px 12px;
+  border: none;
+  border-radius: 5px;
+  background-color: var(--yellow);
+  color: var(--black);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.maletas-bx .lote-grupo-asignar:disabled{
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.maletas-bx .lote-grupo-nota{
+  flex-shrink: 0;
+  font-size: 13px;
+  color: #cfcfcf;
+}
+@media screen and (max-width: 575.98px){
+  .maletas-bx .lote-grupo-cab{
+    padding: 10px 12px;
+  }
+  .maletas-bx .lote-grupo-cab .form-check-input{
+    width: 1.4em;
+    height: 1.4em;
+  }
+  .maletas-bx .lote-grupo-asignar{
+    min-height: 44px;
+  }
+}
+
+/* Modal de vuelos: paso actual al asignar varias aerolineas seguidas */
+.vuelo-modal .vuelo-pasos{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 20px;
+  background-color: var(--yellow);
+  color: var(--black);
+  font-size: 14px;
+  font-weight: 600;
+}
+.vuelo-modal .vuelo-pasos[hidden]{
+  display: none;
+}
+.vuelo-modal .vuelo-pasos button{
+  padding: 6px 12px;
+  border: 1px solid var(--black);
+  border-radius: 5px;
+  background-color: transparent;
+  color: var(--black);
+  font-size: 14px;
+  cursor: pointer;
+}
+
 /* Modal de vuelos */
 .vuelo-modal .modal-content{
   border: none;

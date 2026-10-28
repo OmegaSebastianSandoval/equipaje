@@ -94,6 +94,31 @@ if ($overSesion) {
           </div>
 
           <div class="col-12 mt-2">
+            <div class="lote-seleccion" id="lote-seleccion" hidden>
+              <div class="lote-seleccion-cab">
+                <span class="lote-seleccion-titulo">Seleccionar sin vuelo</span>
+                <button type="button" class="lote-quitar-sel" id="lote-quitar-sel" hidden>
+                  <i class="fa-solid fa-xmark"></i> Quitar selección
+                </button>
+              </div>
+              <div class="lote-chips-wrap" id="lote-chips-wrap">
+                <div class="lote-chips" id="lote-chips" role="group" aria-label="Seleccionar maletas sin vuelo por aerolínea"></div>
+              </div>
+              <div class="lote-seleccion-opciones">
+                <div class="form-check form-switch lote-switch">
+                  <input class="form-check-input" type="checkbox" role="switch" id="lote-agrupar">
+                  <label for="lote-agrupar">Agrupar por aerolínea</label>
+                </div>
+                <div class="form-check form-switch lote-switch">
+                  <input class="form-check-input" type="checkbox" role="switch" id="lote-una">
+                  <label for="lote-una">Seleccionar una aerolínea a la vez</label>
+                </div>
+              </div>
+              <p class="lote-ayuda" id="lote-asignar-ayuda" aria-live="polite"></p>
+            </div>
+          </div>
+
+          <div class="col-12 mt-2">
             <div class="lote-lista" id="lote-lista">
               <div class="lote-vacio" id="lote-vacio"><i class="fa-solid fa-barcode"></i>Escanea la primera maleta para empezar el lote.</div>
             </div>
@@ -141,6 +166,10 @@ if ($overSesion) {
           <div class="vuelo-para" id="vuelo-para"></div>
         </div>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="vuelo-pasos" id="vuelo-pasos" hidden>
+        <span id="vuelo-pasos-texto"></span>
+        <button type="button" id="vuelo-saltar">Saltar esta aerolínea</button>
       </div>
       <div class="vuelo-buscador">
         <i class="fa-solid fa-magnifying-glass"></i>

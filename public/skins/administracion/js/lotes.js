@@ -15,6 +15,10 @@ document.addEventListener("DOMContentLoaded", function () {
   let cacheVuelos = {};
   let vueloDestino = null; // codigos de las filas a las que se asigna el vuelo del modal
   let vueloModal = null;
+  let colaGrupos = []; // grupos de codigos (uno por aerolinea) que faltan por pasar por el modal
+  let pasoGrupo = null; // { i, total } del grupo que se muestra en el modal
+  let ultimoAsignado = null; // ultima maleta a la que se le puso vuelo (para seguir con la siguiente al cerrar)
+  let notaSeleccion = ""; // aviso temporal bajo la seleccion (ej. "se desmarcaron 2 maletas")
 
   // ---------------------------------------------------------------
   // Utilidades
@@ -155,6 +159,97 @@ document.addEventListener("DOMContentLoaded", function () {
   // Aerolinea efectiva: la de conexion si la maleta es de conexion
   function aerolineaEfectiva(f) {
     return f.conexion === "1" ? f.conexionAerolinea || "" : f.aerolinea;
+  }
+
+  // Maletas que todavia se pueden seleccionar o cambiar
+  function editable(f) {
+    return f.estado !== "ok" && f.estado !== "enviando";
+  }
+
+  function sinVuelo(f) {
+    return editable(f) && !(f.vuelo || f.manual);
+  }
+
+  function seleccionadas() {
+    return filas.filter(function (f) {
+      return f.seleccionada && editable(f);
+    });
+  }
+
+  function nombreAerolinea(codigo, f) {
+    if (!codigo) {
+      return "Conexión sin aerolínea";
+    }
+    return (
+      (cfg.aerolineas || {})[codigo] ||
+      (f && f.conexion !== "1" && f.aerolineaNombre) ||
+      codigo
+    );
+  }
+
+  // Agrupa filas por aerolinea efectiva, ordenadas por nombre. Las de conexion sin aerolinea van al final.
+  function agruparPorAerolinea(lista) {
+    const mapa = {};
+    const grupos = [];
+    lista.forEach(function (f) {
+      const a = aerolineaEfectiva(f);
+      if (!mapa[a]) {
+        mapa[a] = { aerolinea: a, nombre: nombreAerolinea(a, f), filas: [] };
+        grupos.push(mapa[a]);
+      }
+      mapa[a].filas.push(f);
+    });
+    return grupos.sort(function (x, y) {
+      if (!x.aerolinea !== !y.aerolinea) {
+        return x.aerolinea ? -1 : 1;
+      }
+      return String(x.nombre).localeCompare(String(y.nombre), "es");
+    });
+  }
+
+  // Preferencias de la pantalla (solo en este navegador)
+  function leerPref(nombre) {
+    try {
+      return localStorage.getItem("lote_pref_" + nombre) === "1";
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function guardarPref(nombre, valor) {
+    try {
+      localStorage.setItem("lote_pref_" + nombre, valor ? "1" : "0");
+    } catch (e) {}
+  }
+
+  function agrupado() {
+    const s = byId("lote-agrupar");
+    return esRegistro && !!(s && s.checked);
+  }
+
+  function unaAerolinea() {
+    const s = byId("lote-una");
+    return esRegistro && !!(s && s.checked);
+  }
+
+  // Desmarca las seleccionadas de otra aerolinea. Devuelve cuantas se desmarcaron.
+  function dejarUnaAerolinea(aerolinea) {
+    let quitadas = 0;
+    filas.forEach(function (f) {
+      if (f.seleccionada && aerolineaEfectiva(f) !== aerolinea) {
+        f.seleccionada = false;
+        quitadas++;
+      }
+    });
+    return quitadas;
+  }
+
+  function textoDesmarcadas(n) {
+    return n
+      ? "Se desmarc" +
+          (n === 1 ? "ó 1 maleta" : "aron " + n + " maletas") +
+          " de otra aerolínea."
+      : "";
   }
 
   // ---------------------------------------------------------------
@@ -505,7 +600,7 @@ document.addEventListener("DOMContentLoaded", function () {
         esc(f.codigo) +
         '"' +
         (f.seleccionada ? " checked" : "") +
-        (f.estado === "ok" ? " disabled" : "") +
+        (editable(f) ? "" : " disabled") +
         ">" +
         '<div class="lote-info">' +
         '<strong class="lote-codigo">' +
@@ -605,19 +700,70 @@ document.addEventListener("DOMContentLoaded", function () {
     return html;
   }
 
+  // Lista agrupada por aerolinea: encabezado con casilla para todo el grupo y boton de vuelo del grupo
+  function gruposHtml() {
+    return agruparPorAerolinea(filas)
+      .map(function (g) {
+        const editables = g.filas.filter(editable);
+        const faltan = g.filas.filter(sinVuelo).length;
+        const n = g.filas.length;
+        let detalle = n + (n === 1 ? " maleta" : " maletas");
+        if (faltan) {
+          detalle += " · " + faltan + " sin vuelo";
+        }
+        let accion;
+        if (g.aerolinea) {
+          accion =
+            '<button type="button" class="lote-grupo-asignar"' +
+            (editables.length && !enviando ? "" : " disabled") +
+            ">" +
+            '<i class="fa-solid fa-plane-departure"></i> ' +
+            (faltan ? "Asignar vuelo" : "Cambiar vuelo") +
+            "</button>";
+        } else {
+          accion =
+            '<span class="lote-grupo-nota">Elige la aerolínea de conexión</span>';
+        }
+        return (
+          '<div class="lote-grupo" data-aerolinea="' +
+          esc(g.aerolinea) +
+          '">' +
+          '<div class="lote-grupo-cab">' +
+          '<input type="checkbox" class="form-check-input lote-grupo-check" aria-label="Seleccionar todas las maletas de ' +
+          esc(g.nombre) +
+          '"' +
+          (editables.length ? "" : " disabled") +
+          ">" +
+          '<div class="lote-grupo-info"><strong>' +
+          esc(g.nombre) +
+          "</strong><span>" +
+          esc(detalle) +
+          "</span></div>" +
+          accion +
+          "</div>" +
+          g.filas.map(filaHtml).join("") +
+          "</div>"
+        );
+      })
+      .join("");
+  }
+
   // Redibuja toda la lista en una sola operacion y conserva el scroll (de la pagina y de la lista)
   function render() {
     const lista = byId("lote-lista");
     const vacio = byId("lote-vacio");
     const scrollPagina = window.scrollY;
     const scrollLista = lista.scrollTop;
-    lista.querySelectorAll(".lote-item").forEach(function (el) {
+    lista.querySelectorAll(".lote-item, .lote-grupo").forEach(function (el) {
       el.remove();
     });
     if (vacio) {
       vacio.style.display = filas.length === 0 ? "" : "none";
     }
-    lista.insertAdjacentHTML("beforeend", filas.map(filaHtml).join(""));
+    lista.insertAdjacentHTML(
+      "beforeend",
+      agrupado() ? gruposHtml() : filas.map(filaHtml).join(""),
+    );
     lista.scrollTop = scrollLista;
     window.scrollTo({
       top: scrollPagina,
@@ -632,8 +778,14 @@ document.addEventListener("DOMContentLoaded", function () {
   // Actualiza solo una fila para no mover la pantalla ni perder el foco
   function renderFila(f, enfocar) {
     const actual = itemDe(f.codigo);
-    if (!actual) {
+    // En la vista agrupada la fila puede cambiar de grupo y el encabezado cambia sus conteos: se redibuja todo
+    if (!actual || agrupado()) {
       render();
+      const item = itemDe(f.codigo);
+      const el = enfocar && item ? item.querySelector(enfocar) : null;
+      if (el) {
+        el.focus({ preventScroll: true });
+      }
       return;
     }
     const nueva = htmlAElemento(filaHtml(f));
@@ -669,26 +821,52 @@ document.addEventListener("DOMContentLoaded", function () {
     if (esRegistro) {
       listo = listo && porEnviar.every(filaCompleta);
       enviar.textContent = "Registrar todas (" + porEnviar.length + ")";
-      const sel = filas.filter(function (f) {
-        return f.seleccionada && f.estado !== "ok";
+      const sel = seleccionadas();
+      const validos = agruparPorAerolinea(sel).filter(function (g) {
+        return g.aerolinea;
       });
-      const aerolineas = {};
-      sel.forEach(function (f) {
-        aerolineas[aerolineaEfectiva(f)] = true;
+      let incluidas = 0;
+      validos.forEach(function (g) {
+        incluidas += g.filas.length;
       });
-      const claves = Object.keys(aerolineas);
       const asignar = byId("lote-asignar");
       if (asignar) {
-        asignar.disabled =
-          enviando ||
-          sel.length === 0 ||
-          claves.length !== 1 ||
-          claves[0] === "";
-        asignar.title =
-          claves.length > 1
-            ? "Las maletas seleccionadas deben ser de la misma aerolínea"
-            : "";
+        asignar.disabled = enviando || validos.length === 0;
+        asignar.textContent =
+          "Asignar vuelo a seleccionadas" +
+          (incluidas ? " (" + incluidas + ")" : "");
       }
+      // Explica que pasara al tocar "Asignar vuelo"
+      let ayuda = "";
+      if (validos.length === 1) {
+        ayuda =
+          incluidas +
+          (incluidas === 1 ? " maleta" : " maletas") +
+          " de " +
+          validos[0].nombre +
+          (incluidas === 1 ? " seleccionada." : " seleccionadas.");
+      } else if (validos.length > 1) {
+        ayuda =
+          "Seleccionaste maletas de " +
+          validos.length +
+          " aerolíneas: al asignar se pide un vuelo para cada una.";
+      }
+      const sinAerolinea = sel.length - incluidas;
+      if (sinAerolinea) {
+        ayuda +=
+          (ayuda ? " " : "") +
+          (sinAerolinea === 1
+            ? "1 maleta sin aerolínea de conexión no se incluye."
+            : sinAerolinea +
+              " maletas sin aerolínea de conexión no se incluyen.");
+      }
+      const caja = byId("lote-asignar-ayuda");
+      if (caja) {
+        caja.textContent = [notaSeleccion, ayuda]
+          .filter(Boolean)
+          .join(" ");
+      }
+      actualizarSeleccion();
     } else {
       enviar.textContent = "Reclamar todas (" + porEnviar.length + ")";
     }
@@ -696,6 +874,123 @@ document.addEventListener("DOMContentLoaded", function () {
     if (limpiar) {
       limpiar.disabled = enviando || filas.length === 0;
     }
+  }
+
+  // ---------------------------------------------------------------
+  // Seleccion de maletas (botones por aerolinea, casillas y encabezados de grupo)
+  // ---------------------------------------------------------------
+  function chipHtml(valor, texto, n, activo) {
+    return (
+      '<button type="button" class="lote-chip' +
+      (activo ? " activo" : "") +
+      '" data-aerolinea="' +
+      esc(valor) +
+      '" aria-pressed="' +
+      activo +
+      '"' +
+      (enviando ? " disabled" : "") +
+      ' title="' +
+      esc(texto) +
+      '"><span class="lote-chip-texto">' +
+      esc(texto) +
+      "</span>" +
+      '<span class="lote-chip-n">' +
+      n +
+      "</span>" +
+      "</button>"
+    );
+  }
+
+  // Un boton por aerolinea con las maletas que aun no tienen vuelo
+  function chipsHtml() {
+    const grupos = agruparPorAerolinea(filas.filter(sinVuelo)).filter(
+      function (g) {
+        return g.aerolinea;
+      },
+    );
+    const sel = seleccionadas();
+    const esLaSeleccion = function (lista) {
+      return (
+        sel.length === lista.length &&
+        lista.every(function (f) {
+          return f.seleccionada;
+        })
+      );
+    };
+    let html = "";
+    if (grupos.length > 1 && !unaAerolinea()) {
+      const todas = [];
+      grupos.forEach(function (g) {
+        Array.prototype.push.apply(todas, g.filas);
+      });
+      html += chipHtml("*", "Todas", todas.length, esLaSeleccion(todas));
+    }
+    grupos.forEach(function (g) {
+      html += chipHtml(
+        g.aerolinea,
+        g.nombre,
+        g.filas.length,
+        esLaSeleccion(g.filas),
+      );
+    });
+    if (!grupos.length) {
+      html +=
+        '<span class="lote-chips-vacio"><i class="fa-solid fa-circle-check"></i> Todas las maletas tienen vuelo.</span>';
+    }
+    return html;
+  }
+
+  function actualizarSeleccion() {
+    const caja = byId("lote-seleccion");
+    const lista = byId("lote-lista");
+    if (!caja) {
+      return;
+    }
+    caja.hidden = filas.length === 0;
+    // Botones por aerolinea (se conserva el foco del teclado al redibujarlos)
+    const chips = byId("lote-chips");
+    const activo = document.activeElement;
+    const enfocado =
+      activo && chips.contains(activo) ? activo.dataset.aerolinea : null;
+    chips.innerHTML = chipsHtml();
+    const quitar = byId("lote-quitar-sel");
+    if (quitar) {
+      quitar.hidden = seleccionadas().length === 0;
+      quitar.disabled = enviando;
+    }
+    if (enfocado != null) {
+      const b = Array.prototype.find.call(
+        chips.querySelectorAll(".lote-chip"),
+        function (el) {
+          return el.dataset.aerolinea === enfocado;
+        },
+      );
+      if (b) {
+        b.focus({ preventScroll: true });
+      }
+    }
+    // Casillas de cada maleta
+    lista.querySelectorAll(".lote-check").forEach(function (c) {
+      const f = buscarFila(codigoDe(c));
+      if (f) {
+        c.checked = !!f.seleccionada;
+      }
+    });
+    // Casilla del encabezado de cada grupo: marcada, a medias o vacia
+    lista.querySelectorAll(".lote-grupo").forEach(function (el) {
+      const codigo = el.dataset.aerolinea;
+      const eds = filas.filter(function (f) {
+        return editable(f) && aerolineaEfectiva(f) === codigo;
+      });
+      const n = eds.filter(function (f) {
+        return f.seleccionada;
+      }).length;
+      const c = el.querySelector(".lote-grupo-check");
+      if (c) {
+        c.checked = eds.length > 0 && n === eds.length;
+        c.indeterminate = n > 0 && n < eds.length;
+      }
+    });
   }
 
   // ---------------------------------------------------------------
@@ -759,6 +1054,22 @@ document.addEventListener("DOMContentLoaded", function () {
         : "Maleta " + codigos[0]) +
       " · " +
       nombre;
+    // Paso actual cuando se asignan varias aerolineas seguidas
+    const pasos = byId("vuelo-pasos");
+    if (pasos) {
+      const varios = !!(pasoGrupo && pasoGrupo.total > 1);
+      pasos.hidden = !varios;
+      if (varios) {
+        byId("vuelo-pasos-texto").textContent =
+          "Aerolínea " + pasoGrupo.i + " de " + pasoGrupo.total;
+        byId("vuelo-saltar").textContent =
+          pasoGrupo.i < pasoGrupo.total ? "Saltar esta aerolínea" : "Saltar y cerrar";
+      }
+    }
+    const cuerpo = byId("vueloModal").querySelector(".modal-body");
+    if (cuerpo) {
+      cuerpo.scrollTop = 0;
+    }
     byId("vuelo-buscar").value = "";
     byId("vuelo-manual-input").value =
       codigos.length === 1 ? f.manual || "" : "";
@@ -871,31 +1182,45 @@ document.addEventListener("DOMContentLoaded", function () {
     );
   }
 
+  // Abre el modal una vez por grupo (un grupo = maletas de una misma aerolinea)
+  function iniciarAsignacion(grupos) {
+    colaGrupos = grupos.slice();
+    pasoGrupo = { i: 0, total: grupos.length };
+    siguienteGrupo();
+  }
+
+  function siguienteGrupo() {
+    const codigos = colaGrupos.shift();
+    if (!codigos) {
+      vueloModal.hide();
+      return;
+    }
+    if (pasoGrupo) {
+      pasoGrupo.i++;
+    }
+    abrirVuelos(codigos);
+  }
+
   function asignarVuelo(vuelo, manual) {
     const destino = vueloDestino || [];
     destino.forEach(function (codigo) {
       const f = buscarFila(codigo);
-      if (f && f.estado !== "ok") {
+      if (f && editable(f)) {
         f.vuelo = vuelo;
         f.manual = vuelo ? "" : manual;
+        // Ya tiene vuelo: se desmarca para poder seleccionar las siguientes sin limpiar a mano
+        f.seleccionada = false;
         if (f.estado === "error") {
           f.estado = "pendiente";
           f.mensaje = "";
         }
       }
     });
-    const ultimo = destino[destino.length - 1];
-    vueloDestino = null;
-    // Al cerrar el modal se pasa a la siguiente maleta que falta completar (sin subir al campo de escaneo)
-    byId("vueloModal").addEventListener(
-      "hidden.bs.modal",
-      function () {
-        enfocarSiguientePendiente(ultimo);
-      },
-      { once: true },
-    );
-    vueloModal.hide();
+    ultimoAsignado = destino[destino.length - 1] || ultimoAsignado;
+    notaSeleccion = "";
     render();
+    // Si quedan aerolineas por asignar, el modal sigue abierto con la siguiente
+    siguienteGrupo();
   }
 
   // En el celular no se enfoca el campo de escaneo: subiria la pagina y abriria el teclado
@@ -1123,6 +1448,14 @@ document.addEventListener("DOMContentLoaded", function () {
     esRegistro && byId("vueloModal")
       ? new bootstrap.Modal(byId("vueloModal"))
       : null;
+  if (esRegistro) {
+    ["agrupar", "una"].forEach(function (nombre) {
+      const s = byId("lote-" + nombre);
+      if (s) {
+        s.checked = leerPref(nombre);
+      }
+    });
+  }
   cargar();
   render();
 
@@ -1201,10 +1534,111 @@ document.addEventListener("DOMContentLoaded", function () {
     const f = buscarFila(codigoDe(this));
     if (f) {
       f.seleccionada = this.checked;
+      notaSeleccion = "";
+      if (this.checked && unaAerolinea()) {
+        notaSeleccion = textoDesmarcadas(
+          dejarUnaAerolinea(aerolineaEfectiva(f)),
+        );
+      }
       actualizarBotones();
       guardar();
     }
   });
+
+  // Casilla del encabezado del grupo: marca o desmarca todas las de esa aerolinea
+  delegar(lista, "change", ".lote-grupo-check", function () {
+    const codigo = this.closest(".lote-grupo").dataset.aerolinea;
+    const marcar = this.checked;
+    notaSeleccion = "";
+    filas.forEach(function (f) {
+      if (editable(f) && aerolineaEfectiva(f) === codigo) {
+        f.seleccionada = marcar;
+      }
+    });
+    if (marcar && unaAerolinea()) {
+      notaSeleccion = textoDesmarcadas(dejarUnaAerolinea(codigo));
+    }
+    actualizarBotones();
+    guardar();
+  });
+
+  // Boton del grupo: vuelo para las que no tienen; si todas tienen, cambia el de todas
+  delegar(lista, "click", ".lote-grupo-asignar", function () {
+    const codigo = this.closest(".lote-grupo").dataset.aerolinea;
+    const eds = filas.filter(function (f) {
+      return editable(f) && aerolineaEfectiva(f) === codigo;
+    });
+    const faltan = eds.filter(sinVuelo);
+    const codigos = (faltan.length ? faltan : eds).map(function (f) {
+      return f.codigo;
+    });
+    if (codigos.length) {
+      iniciarAsignacion([codigos]);
+    }
+  });
+
+  // Botones por aerolinea: dejan seleccionadas solo las maletas sin vuelo de esa aerolinea
+  delegar(byId("lote-chips"), "click", ".lote-chip", function () {
+    if (enviando) {
+      return;
+    }
+    const valor = this.dataset.aerolinea;
+    notaSeleccion = "";
+    filas.forEach(function (f) {
+      const a = aerolineaEfectiva(f);
+      f.seleccionada =
+        valor !== "-" && sinVuelo(f) && (valor === "*" ? a !== "" : a === valor);
+    });
+    actualizarBotones();
+    guardar();
+  });
+
+  byId("lote-quitar-sel").addEventListener("click", function () {
+    notaSeleccion = "";
+    filas.forEach(function (f) {
+      f.seleccionada = false;
+    });
+    actualizarBotones();
+    guardar();
+  });
+
+  const switchAgrupar = byId("lote-agrupar");
+  if (switchAgrupar) {
+    switchAgrupar.addEventListener("change", function () {
+      guardarPref("agrupar", this.checked);
+      render();
+    });
+  }
+
+  const switchUna = byId("lote-una");
+  if (switchUna) {
+    switchUna.addEventListener("change", function () {
+      guardarPref("una", this.checked);
+      notaSeleccion = "";
+      const primera = seleccionadas()[0];
+      if (this.checked && primera) {
+        notaSeleccion = textoDesmarcadas(
+          dejarUnaAerolinea(aerolineaEfectiva(primera)),
+        );
+      }
+      actualizarBotones();
+      guardar();
+    });
+  }
+
+  // Al cerrar el modal se cancela lo que faltaba y se pasa a la siguiente maleta sin completar
+  byId("vueloModal").addEventListener("hidden.bs.modal", function () {
+    colaGrupos = [];
+    pasoGrupo = null;
+    vueloDestino = null;
+    if (ultimoAsignado) {
+      const codigo = ultimoAsignado;
+      ultimoAsignado = null;
+      enfocarSiguientePendiente(codigo);
+    }
+  });
+
+  byId("vuelo-saltar").addEventListener("click", siguienteGrupo);
 
   delegar(lista, "click", ".lote-conexion-btn", function () {
     const f = buscarFila(codigoDe(this));
@@ -1229,19 +1663,24 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   delegar(lista, "click", ".lote-vuelo", function () {
+    colaGrupos = [];
+    pasoGrupo = null;
     abrirVuelos([codigoDe(this)]);
   });
 
+  // Con varias aerolineas seleccionadas se pide un vuelo por cada una, en orden
   byId("lote-asignar").addEventListener("click", function () {
-    const codigos = filas
-      .filter(function (f) {
-        return f.seleccionada && f.estado !== "ok";
+    const grupos = agruparPorAerolinea(seleccionadas())
+      .filter(function (g) {
+        return g.aerolinea;
       })
-      .map(function (f) {
-        return f.codigo;
+      .map(function (g) {
+        return g.filas.map(function (f) {
+          return f.codigo;
+        });
       });
-    if (codigos.length) {
-      abrirVuelos(codigos);
+    if (grupos.length) {
+      iniciarAsignacion(grupos);
     }
   });
 
