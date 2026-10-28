@@ -32,6 +32,8 @@ class Core_Model_Mail
         $this->mail->Host = $informacion->info_pagina_host;
         $this->mail->Port = $informacion->info_pagina_port;
         $this->mail->SMTPAuth = true;
+        // PHPMailer espera hasta 300s por defecto si el SMTP no responde; se limita para no colgar el registro de maletas
+        $this->mail->Timeout = 30;
         $this->mail->Username = $informacion->info_pagina_username;
         $this->mail->Password = $decrypted_password;
         $this->mail->setFrom($informacion->info_pagina_correo_remitente, $informacion->info_pagina_nombre_remitente);

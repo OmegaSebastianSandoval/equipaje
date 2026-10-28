@@ -125,104 +125,257 @@ $(document).ready(function () {
 
 
 document.addEventListener('DOMContentLoaded', function () {
-  var videoModal = document.getElementById('videoModal');
+  const videoModal = document.getElementById('videoModal');
+  if (!videoModal) {
+    return;
+  }
 
-  // Evento que se dispara cuando el modal se está mostrando
-  videoModal.addEventListener('show.bs.modal', function () {
-    startVideoStream();
-  });
+  // Las etiquetas IATA de equipaje usan Interleaved 2 of 5 (ITF).
+  // Lector principal: BarcodeDetector, el lector nativo del navegador (Chrome en Android); tambien lee QR.
+  // Respaldo: Quagga, para navegadores sin BarcodeDetector (Safari en iPhone); Quagga no lee QR.
+  const FORMATOS_NATIVOS = ['itf', 'code_128', 'code_39', 'qr_code'];
+  const LECTORES_QUAGGA = ['i2of5_reader', 'code_128_reader', 'code_39_reader'];
+  // Un codigo se acepta cuando se lee igual varias veces en poco tiempo (descarta lecturas falsas)
+  const VENTANA_MS = 2000;
 
-  // Evento que se dispara cuando el modal se cierra
-  videoModal.addEventListener('hidden.bs.modal', function () {
-    stopVideoStream();
-  });
+  let lecturas = {};
+  let aceptados = {};
+  let sesion = null; // { motor: 'nativo'|'quagga', stream, video, timer }
+  let intento = 0; // invalida inicios que terminan despues de cerrar el modal
 
-  function startVideoStream() {
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-      navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
-        .then(function (stream) {
-          var videoElement = document.getElementById('video');
-          videoElement.srcObject = stream;
-          startBarcodeReader(videoElement);
-        }).catch(function (error) {
-          console.error("Error accessing the camera: ", error);
-          alert('Error accessing the camera: ' + error.message);
-        });
+  videoModal.addEventListener('shown.bs.modal', iniciarLector);
+  videoModal.addEventListener('hidden.bs.modal', detenerLector);
+
+  function obtenerVisor() {
+    const visor = document.getElementById('camara-visor');
+    if (visor) {
+      return visor;
+    }
+    const video = document.getElementById('video');
+    return video ? video.parentElement : null;
+  }
+
+  function mostrarErrorCamara(texto) {
+    const estado = document.getElementById('camara-estado');
+    if (estado) {
+      estado.className = 'camara-estado aviso-error visible';
+      estado.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i><span></span>';
+      estado.querySelector('span').textContent = texto;
     } else {
-      alert('Your browser does not support media devices.');
+      alert(texto);
+    }
+  }
+
+  function mensajeErrorCamara(err) {
+    const nombre = err && err.name;
+    if (nombre === 'NotAllowedError' || nombre === 'PermissionDeniedError') {
+      return 'No hay permiso para usar la cámara. Actívalo en la configuración del navegador.';
+    }
+    if (nombre === 'NotReadableError' || nombre === 'TrackStartError') {
+      return 'La cámara está ocupada por otra aplicación. Ciérrala e intenta de nuevo.';
+    }
+    return 'No se pudo abrir la cámara (' + ((err && (err.message || err.name)) || err) + ').';
+  }
+
+  async function iniciarLector() {
+    const visor = obtenerVisor();
+    if (!visor) {
       return;
     }
-  }
-
-  function stopVideoStream() {
-    var videoElement = document.getElementById('video');
-    if (videoElement.srcObject) {
-      videoElement.srcObject.getTracks().forEach(track => track.stop());
-      videoElement.srcObject = null;
+    const miIntento = ++intento;
+    lecturas = {};
+    aceptados = {};
+    if (!window.isSecureContext || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      mostrarErrorCamara('La cámara solo funciona con https. Usa la pistola o escribe el código.');
+      return;
+    }
+    try {
+      if (await iniciarNativo(visor, miIntento)) {
+        return;
+      }
+    } catch (err) {
+      console.error('Lector nativo: ', err);
+      if (err && (err.name === 'NotAllowedError' || err.name === 'NotReadableError')) {
+        mostrarErrorCamara(mensajeErrorCamara(err));
+        return;
+      }
+    }
+    if (miIntento === intento) {
+      iniciarQuagga(visor);
     }
   }
 
-  function startBarcodeReader(videoElement) {
+  // Lector nativo. Devuelve false si el navegador no lo tiene o no lee ITF.
+  async function iniciarNativo(visor, miIntento) {
+    if (!('BarcodeDetector' in window)) {
+      return false;
+    }
+    const soportados = await window.BarcodeDetector.getSupportedFormats();
+    if (soportados.indexOf('itf') === -1) {
+      return false;
+    }
+    const detector = new window.BarcodeDetector({
+      formats: FORMATOS_NATIVOS.filter(function (f) { return soportados.indexOf(f) !== -1; })
+    });
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: false,
+      video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } }
+    });
+    if (miIntento !== intento) {
+      stream.getTracks().forEach(function (t) { t.stop(); });
+      return true;
+    }
+    const video = document.createElement('video');
+    video.setAttribute('playsinline', '');
+    video.setAttribute('autoplay', '');
+    video.muted = true;
+    video.srcObject = stream;
+    visor.appendChild(video);
+    sesion = { motor: 'nativo', stream: stream, video: video, timer: null };
+    mejorarEnfoque(stream.getVideoTracks()[0]);
+    try {
+      await video.play();
+    } catch (e) { }
+
+    const ciclo = async function () {
+      if (!sesion || sesion.video !== video) {
+        return;
+      }
+      try {
+        if (video.readyState >= 2) {
+          const codigos = await detector.detect(video);
+          codigos.forEach(function (c) { registrarLectura(c.rawValue, 2); });
+        }
+      } catch (e) { }
+      if (sesion && sesion.video === video) {
+        sesion.timer = setTimeout(ciclo, 120);
+      }
+    };
+    ciclo();
+    return true;
+  }
+
+  // Enfoque continuo y un poco de zoom: el celular puede quedar mas lejos de la etiqueta y enfocar bien
+  function mejorarEnfoque(track) {
+    try {
+      const cap = track && track.getCapabilities ? track.getCapabilities() : {};
+      const avanzado = {};
+      if (cap.focusMode && cap.focusMode.indexOf('continuous') !== -1) {
+        avanzado.focusMode = 'continuous';
+      }
+      if (cap.zoom && cap.zoom.max >= 1.5) {
+        avanzado.zoom = Math.min(1.5, cap.zoom.max);
+      }
+      if (Object.keys(avanzado).length) {
+        track.applyConstraints({ advanced: [avanzado] }).catch(function () { });
+      }
+    } catch (e) { }
+  }
+
+  // Respaldo: Quagga abre la camara una sola vez y dibuja su propio video en el visor
+  function iniciarQuagga(visor) {
+    sesion = { motor: 'quagga' };
     Quagga.init({
       inputStream: {
-        name: "Live",
-        type: "LiveStream",
-        target: videoElement
+        name: 'Live',
+        type: 'LiveStream',
+        target: visor,
+        constraints: {
+          facingMode: 'environment',
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        }
       },
+      locator: {
+        patchSize: 'medium',
+        halfSample: true
+      },
+      numOfWorkers: Math.min(navigator.hardwareConcurrency || 2, 4),
+      frequency: 10,
       decoder: {
-        readers: [
-          "code_128_reader",
-          "ean_reader",
-          "ean_8_reader",
-          "code_39_reader",
-          "code_39_vin_reader",
-          "codabar_reader",
-          "upc_reader",
-          "upc_e_reader",
-          "i2of5_reader"
-        ],
-      }
+        readers: LECTORES_QUAGGA
+      },
+      locate: true
     }, function (err) {
       if (err) {
-        console.error("Error al inicializar Quagga: ", err);
+        console.error('Error al inicializar Quagga: ', err);
+        mostrarErrorCamara(mensajeErrorCamara(err));
         return;
       }
       Quagga.start();
     });
-
-    var lastCode = null;
-    var repeatCount = 0;
-
+    // Evita acumular manejadores cada vez que se abre el modal
+    Quagga.offDetected();
     Quagga.onDetected(function (data) {
-      var code = data.codeResult.code;
-      if (code === lastCode) {
-        repeatCount++;
-        if (repeatCount >= 3) { // Asegura que el mismo código ha sido leído consecutivamente 3 veces
-          console.log(code);
-          if(document.getElementById('maleta_codigo')){
-            document.getElementById('maleta_codigo').value = code; // Asignar el código al input
-          }
-          if(document.getElementById('maleta_codigo_reclamo')){
-            document.getElementById('maleta_codigo_reclamo').value = code; // Asignar el código al input
-          }
-          // console.log("Código IATA detectado con baja tasa de error:", code);
-          $('#videoModal').modal('hide'); // Cerrar el modal
-          $('#maleta_codigo').change(); // Disparar el evento change para que se ejecute la lógica de la aerolínea
-          $('#maleta_codigo_reclamo').change(); // Disparar el evento change para que se ejecute la lógica de la aerolínea
-          Quagga.stop(); // Detener Quagga al cerrar el modal
-        }
-      } else {
-        lastCode = code;
-        repeatCount = 0;
+      if (data && data.codeResult) {
+        registrarLectura(String(data.codeResult.code), 3);
       }
     });
-    videoModal.addEventListener('hidden.bs.modal', function () {
-      if (Quagga) {
-        Quagga.stop(); // Asegúrate de que Quagga se detenga cuando el modal se oculte
-      }
-      stopVideoStream(); // Detiene el flujo de video
-    });
+  }
 
+  function detenerLector() {
+    intento++;
+    const actual = sesion;
+    sesion = null;
+    if (actual && actual.motor === 'nativo') {
+      clearTimeout(actual.timer);
+      actual.stream.getTracks().forEach(function (t) { t.stop(); });
+      actual.video.remove();
+    }
+    if (actual && actual.motor === 'quagga') {
+      try {
+        Quagga.offDetected();
+        Quagga.stop(); // tambien apaga la camara
+      } catch (e) { }
+    }
+    const visor = obtenerVisor();
+    if (visor) {
+      visor.querySelectorAll('video, canvas').forEach(function (el) {
+        if (el.srcObject) {
+          el.srcObject.getTracks().forEach(function (t) { t.stop(); });
+        }
+        if (el.id !== 'video') {
+          el.remove();
+        }
+      });
+    }
+  }
+
+  function registrarLectura(code, necesarias) {
+    code = String(code || '').trim();
+    if (!code || aceptados[code]) {
+      return; // vacio, o ya enviado en esta apertura (la etiqueta sigue frente a la camara)
+    }
+    const ahora = Date.now();
+    const previas = (lecturas[code] || []).filter(function (t) { return ahora - t < VENTANA_MS; });
+    previas.push(ahora);
+    lecturas[code] = previas;
+    if (previas.length < necesarias) {
+      return;
+    }
+    aceptados[code] = true;
+    lecturas = {};
+    const visor = obtenerVisor();
+    if (visor) {
+      visor.classList.add('lectura-ok');
+      setTimeout(function () {
+        visor.classList.remove('lectura-ok');
+      }, 300);
+    }
+    // Modo continuo (registro/reclamo por lotes): cada lectura agrega una fila y la camara sigue abierta
+    if (typeof window.loteAgregarCodigo === 'function') {
+      window.loteAgregarCodigo(code);
+      return;
+    }
+    if (document.getElementById('maleta_codigo')) {
+      document.getElementById('maleta_codigo').value = code;
+    }
+    if (document.getElementById('maleta_codigo_reclamo')) {
+      document.getElementById('maleta_codigo_reclamo').value = code;
+    }
+    $('#videoModal').modal('hide');
+    $('#maleta_codigo').change();
+    $('#maleta_codigo_reclamo').change();
   }
 });
 

@@ -5,6 +5,9 @@ if (isset($_COOKIE['consentimiento']) && $_COOKIE['consentimiento'] === 'aceptad
   ini_set('session.cookie_httponly', 1);  // Evita acceso desde JS (protege de XSS)
   ini_set('session.cookie_secure', 1);    // Solo por HTTPS
   ini_set('session.use_strict_mode', 1);  // PHP no acepta IDs de sesión no creados por el servidor
+  // 12 horas (un turno): la cookie sobrevive a que el navegador del celular cierre la pestaña
+  ini_set('session.gc_maxlifetime', 43200);
+  ini_set('session.cookie_lifetime', 43200);
   session_start();
 }
 define('DS', DIRECTORY_SEPARATOR);
@@ -59,7 +62,7 @@ include(APP_PATH . '/../vendor/autoload.php');
 $env = "development";
 if (strpos($_SERVER['HTTP_HOST'], "equipajerezagado.opain.co:8443") !== false) {
   $env = "staging";
-} else if (strpos($_SERVER['HTTP_HOST'], "...") !== false) {
+} else if (strpos($_SERVER['HTTP_HOST'], "equipajerezagado.opain.co") !== false) {
   $env = "production";
 }
 define('APPLICATION_ENV', getenv('APPLICATION_ENV') ? getenv('APPLICATION_ENV') : $env);

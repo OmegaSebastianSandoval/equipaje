@@ -104,7 +104,7 @@
 				</div>
 			</div>
 		</div>
-		<div class="content-table">
+		<div class="content-table table-responsive">
 			<table class=" table table-striped  table-hover table-administrator text-left">
 				<thead>
 					<tr>

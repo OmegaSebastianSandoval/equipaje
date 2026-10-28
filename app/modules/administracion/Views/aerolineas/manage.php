@@ -48,7 +48,7 @@
 					</label>
 					<div class="help-block with-errors"></div>
 				</div> -->
-				<div class="col-6 form-group">
+				<div class="col-3 form-group">
 					<label for="aerolinea_codigo" class="control-label">C&oacute;digo</label>
 					<label class="input-group">
 						<div class="input-group-prepend">
@@ -58,6 +58,17 @@
 							id="aerolinea_codigo" class="form-control" required>
 					</label>
 					<div class="help-block with-errors"></div>
+				</div>
+				<div class="col-3 form-group">
+					<label for="aerolinea_iata" class="control-label">C&oacute;digo IATA (vuelos)</label>
+					<label class="input-group">
+						<div class="input-group-prepend">
+							<span class="input-group-text input-icono  fondo-rosado "><i class="fas fa-plane"></i></span>
+						</div>
+						<input type="text" value="<?= $this->content->aerolinea_iata; ?>" name="aerolinea_iata"
+							id="aerolinea_iata" class="form-control" maxlength="3" placeholder="Ej: AV" style="text-transform: uppercase;">
+					</label>
+					<div class="help-block with-errors">Debe coincidir con el linecode del XML de vuelos. Sin IATA no se muestran vuelos.</div>
 				</div>
 				<div class="col-6 form-group">
 					<label for="aerolinea_telefono" class="control-label">Teléfono</label>

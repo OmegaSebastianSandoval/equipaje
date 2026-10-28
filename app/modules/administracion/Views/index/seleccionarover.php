@@ -1,3 +1,4 @@
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="/components/bootstrap/css/bootstrap.min.css">
 <script src="/components/bootstrap/js/bootstrap.min.js"></script>
 
@@ -110,6 +111,15 @@
     .modern-cards {
       height: auto;
     }
+
+    .modern-cards .modern-card {
+      aspect-ratio: auto;
+      min-height: 120px;
+    }
+
+    .modern-cards .content h5 {
+      font-size: 1.5rem;
+    }
   }
 </style>
 
@@ -208,7 +218,7 @@
     </div>
     <?php if ($_SESSION['kt_login_level'] == 2) { ?>
       <div class="col-12 d-flex justify-content-center mt-2">
-        <a href="/administracion/panel" class="btn-maletas">
+        <a href="/administracion/maletas" class="btn-maletas">
           <i class="fa-solid fa-plane-circle-check"></i>
           Ir a maletas
         </a>

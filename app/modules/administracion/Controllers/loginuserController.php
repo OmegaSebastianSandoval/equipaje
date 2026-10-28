@@ -13,6 +13,9 @@ class Administracion_loginuserController extends Controllers_Abstract
   public $csrf;
   protected $log_error = '';
   protected $login_user = '';
+  // Cookie que marca el navegador como confiable para omitir el OTP
+  const COOKIE_DISPOSITIVO = 'eq_dispositivo';
+  const DIAS_DISPOSITIVO = 30;
 
 
   public function init()
@@ -43,7 +46,7 @@ class Administracion_loginuserController extends Controllers_Abstract
     $bloqueosModel = new Administracion_Model_DbTable_Bloqueos();
     // Obtiene información de bloqueos anteriores
     $infoBloqueo = $bloqueosModel->getList(
-      "bloqueo_usuario = '$user' or bloqueo_ip = '" . $_SERVER['REMOTE_ADDR'] . "' ",
+      "bloqueo_usuario = '$user' or bloqueo_ip = '" . $this->escapar($_SERVER['REMOTE_ADDR']) . "' ",
       "bloqueo_id DESC"
     )[0];
     // Manejo de intentos fallidos
@@ -66,7 +69,7 @@ class Administracion_loginuserController extends Controllers_Abstract
     $dataBloque = array();
     $dataBloque['bloqueo_usuario'] = $user;
     $dataBloque['bloqueo_intentosfallidos'] = $this->getIntentos($user);
-    $dataBloque['bloqueo_ip'] = $_SERVER['REMOTE_ADDR'];
+    $dataBloque['bloqueo_ip'] = $this->escapar($_SERVER['REMOTE_ADDR']);
     $bloqueosModel->insert($dataBloque);
 
     $isError = false;
@@ -82,32 +85,32 @@ class Administracion_loginuserController extends Controllers_Abstract
       } else if ($userModel->autenticateUser($user, $password) == true) {
         $resUser = $userModel->searchUserByUser($user);
         if ($resUser->user_state == 1) {
-          $otpCode = rand(100000, 999999);
-
-          $usersModel = new Administracion_Model_DbTable_Usuario();
-          $usersModel->editField($resUser->user_uid, 'user_otp', $otpCode);
-          $usersModel->editField($resUser->user_uid, 'user_otp_date', date('Y-m-d H:i:s'));
-          $mailModel = new Core_Model_Sendingemail($this->_view);
-          $mailModel->enviarOTP($resUser, $otpCode);
-          //LOG
-          $data['log_tipo'] = "LOGIN OTP 1";
-          $data['log_usuario'] = $resUser->user_user;
-          $infoInicioSesion = [
-            'usuario' => $resUser->user_user,
-            'fecha' => date('Y-m-d H:i:s'),
-            'ip' => $_SERVER['REMOTE_ADDR'],
-            'navegador' => $_SERVER['HTTP_USER_AGENT'],
-            'otp' => $otpCode
-          ];
-          $data['log_log'] = print_r($infoInicioSesion, true);
-          $logModel = new Administracion_Model_DbTable_Log();
-          $logModel->insert($data);
           $infoBloqueo = $bloqueosModel->getList("bloqueo_usuario = '$user'", "bloqueo_id DESC");
           if (count($infoBloqueo) > 0) {
             foreach ($infoBloqueo as $info) {
               $bloqueosModel->deleteRegister($info->bloqueo_id);
             }
           }
+
+          // Dispositivo recordado: entra solo con usuario y clave
+          if ($this->esDispositivoConfiable($resUser->user_id)) {
+            //LOG
+            $data['log_tipo'] = "LOGIN DISPOSITIVO CONFIABLE";
+            $data['log_usuario'] = $resUser->user_user;
+            $infoInicioSesion = [
+              'usuario' => $resUser->user_user,
+              'fecha' => date('Y-m-d H:i:s'),
+              'ip' => $this->escapar($_SERVER['REMOTE_ADDR']),
+              'navegador' => $this->escapar($_SERVER['HTTP_USER_AGENT']),
+            ];
+            $data['log_log'] = print_r($infoInicioSesion, true);
+            $logModel = new Administracion_Model_DbTable_Log();
+            $logModel->insert($data);
+            $this->iniciarSesion($resUser);
+            exit;
+          }
+
+          $this->enviarCodigoOtp($resUser);
           Session::getInstance()->set("kt_login_attempt", $resUser->user_id);
           Session::getInstance()->set("user_uid", $resUser->user_uid);
           header('Location: /administracion/index/otp');
@@ -202,17 +205,23 @@ class Administracion_loginuserController extends Controllers_Abstract
   public function otpLoginAction()
   {
     $otp = $this->_getSanitizedParam("code");
-    $user_id = Session::getInstance()->get("kt_login_attempt");
+    $recordar = $this->_getSanitizedParam("recordar");
     $user_uid = Session::getInstance()->get("user_uid");
 
     $usersModel = new Administracion_Model_DbTable_Usuario();
-    $user = $usersModel->getById($user_uid);
+    $user = $user_uid ? $usersModel->getById($user_uid) : false;
+    if (!$user) {
+      header('Location: /administracion/');
+      exit;
+    }
     $this->login_user = $user->user_user;
+    $usuarioSql = $this->escapar($user->user_user);
+    $ipSql = $this->escapar($_SERVER['REMOTE_ADDR']);
 
     $bloqueosModel = new Administracion_Model_DbTable_Bloqueos();
     // Obtiene información de bloqueos anteriores
     $infoBloqueo = $bloqueosModel->getList(
-      "bloqueo_usuario = '$user->user_user' or bloqueo_ip = '" . $_SERVER['REMOTE_ADDR'] . "' ",
+      "bloqueo_usuario = '$usuarioSql' or bloqueo_ip = '$ipSql' ",
       "bloqueo_id DESC"
     )[0];
     // Manejo de intentos fallidos
@@ -232,9 +241,9 @@ class Administracion_loginuserController extends Controllers_Abstract
 
     // Registra el intento fallido
     $dataBloque = array();
-    $dataBloque['bloqueo_usuario'] = $user->user_user;
-    $dataBloque['bloqueo_intentosfallidos'] = $this->getIntentos($user->user_user);
-    $dataBloque['bloqueo_ip'] = $_SERVER['REMOTE_ADDR'];
+    $dataBloque['bloqueo_usuario'] = $usuarioSql;
+    $dataBloque['bloqueo_intentosfallidos'] = $this->getIntentos($usuarioSql);
+    $dataBloque['bloqueo_ip'] = $ipSql;
     $bloqueosModel->insert($dataBloque);
 
 
@@ -247,46 +256,32 @@ class Administracion_loginuserController extends Controllers_Abstract
     ) {
       $usersModel->editField($user_uid, 'user_otp', '');
       $usersModel->editField($user_uid, 'user_otp_date', '');
-      Session::getInstance()->set("kt_login_id", $user->user_id);
-      Session::getInstance()->set("kt_login_level", $user->user_level);
-      Session::getInstance()->set("kt_login_user", $user->user_user);
-      Session::getInstance()->set("kt_login_aerolinea", $user->user_aerolinea);
-      Session::getInstance()->set("kt_login_name", $user->user_names . " " . $user->user_lastnames);
-      Session::getInstance()->set("kt_login_uid", $user->user_uid);
-
-      Session::getInstance()->set("user_ip", $this->getRealIp());
-      Session::getInstance()->set("user_agent", $_SERVER['HTTP_USER_AGENT']);
-      $omegaToken = md5($user->user_id . "_OMEGA");
-      Session::getInstance()->set("OMEGA_TOKEN", $omegaToken);
-      Session::getInstance()->set("user_puedeover", $user->user_puedeover);
-      $_SESSION['user_agent'] = $_SERVER['HTTP_USER_AGENT'];
-      $_SESSION['kt_stw_ows'] = md5($_SERVER['HTTP_HOST'] . "OMEGA");
       //LOG
       $data['log_tipo'] = "LOGIN OTP 2";
       $data['log_usuario'] = $user->user_user;
       $infoInicioSesion = [
         'usuario' => $user->user_user,
         'fecha' => date('Y-m-d H:i:s'),
-        'ip' => $_SERVER['REMOTE_ADDR'],
-        'navegador' => $_SERVER['HTTP_USER_AGENT'],
+        'ip' => $ipSql,
+        'navegador' => $this->escapar($_SERVER['HTTP_USER_AGENT']),
         'opt' => $otp,
         'opt_db' => $user->user_otp,
+        'recordar_dispositivo' => $recordar ? 'si' : 'no',
       ];
       $data['log_log'] = print_r($infoInicioSesion, true);
       $logModel = new Administracion_Model_DbTable_Log();
       $logModel->insert($data);
 
-      $infoBloqueo = $bloqueosModel->getList("bloqueo_usuario = '$user->user_user'", "bloqueo_id DESC");
+      $infoBloqueo = $bloqueosModel->getList("bloqueo_usuario = '$usuarioSql'", "bloqueo_id DESC");
       if (count($infoBloqueo) > 0) {
         foreach ($infoBloqueo as $info) {
           $bloqueosModel->deleteRegister($info->bloqueo_id);
         }
       }
-      if ($user->user_level == 3 || ($user->user_level == 2 && $user->user_puedeover == 1)) {
-        header('Location: /administracion/index/seleccionarover');
-      } else {
-        header('Location: /administracion/panel?');
+      if ($recordar) {
+        $this->recordarDispositivo($user);
       }
+      $this->iniciarSesion($user);
     } else {
       Session::getInstance()->set("error_login", "El código ingresado es incorrecto.");
       $data['log_tipo'] = "LOGIN OTP FALLIDO";
@@ -294,8 +289,8 @@ class Administracion_loginuserController extends Controllers_Abstract
       $infoInicioSesion = [
         'usuario' => $user->user_user,
         'fecha' => date('Y-m-d H:i:s'),
-        'ip' => $_SERVER['REMOTE_ADDR'],
-        'navegador' => $_SERVER['HTTP_USER_AGENT'],
+        'ip' => $ipSql,
+        'navegador' => $this->escapar($_SERVER['HTTP_USER_AGENT']),
         'opt' => $otp,
         'opt_db' => $user->user_otp,
       ];
@@ -305,6 +300,133 @@ class Administracion_loginuserController extends Controllers_Abstract
       header('Location: /administracion/index/otp');
     }
   }
+
+  // Envía un nuevo código al correo, máximo uno por minuto
+  public function reenviarotpAction()
+  {
+    $user_uid = Session::getInstance()->get("user_uid");
+    $usersModel = new Administracion_Model_DbTable_Usuario();
+    $user = $user_uid ? $usersModel->getById($user_uid) : false;
+    if (!$user || $user->user_state != 1) {
+      header('Location: /administracion/');
+      exit;
+    }
+    $ultimoEnvio = $user->user_otp_date ? strtotime($user->user_otp_date) : 0;
+    if ($ultimoEnvio && time() - $ultimoEnvio < 60) {
+      Session::getInstance()->set("error_login", "Espera un minuto antes de solicitar otro código.");
+    } else {
+      $this->enviarCodigoOtp($user);
+      Session::getInstance()->set("mensaje_otp", "Te enviamos un nuevo código a tu correo electrónico.");
+    }
+    header('Location: /administracion/index/otp');
+    exit;
+  }
+
+  // Genera el OTP, lo guarda en el usuario y lo envía por correo
+  private function enviarCodigoOtp($user)
+  {
+    $otpCode = random_int(100000, 999999);
+
+    $usersModel = new Administracion_Model_DbTable_Usuario();
+    $usersModel->editField($user->user_uid, 'user_otp', $otpCode);
+    $usersModel->editField($user->user_uid, 'user_otp_date', date('Y-m-d H:i:s'));
+    $mailModel = new Core_Model_Sendingemail($this->_view);
+    $mailModel->enviarOTP($user, $otpCode);
+    //LOG
+    $data['log_tipo'] = "LOGIN OTP 1";
+    $data['log_usuario'] = $user->user_user;
+    $infoInicioSesion = [
+      'usuario' => $user->user_user,
+      'fecha' => date('Y-m-d H:i:s'),
+      'ip' => $this->escapar($_SERVER['REMOTE_ADDR']),
+      'navegador' => $this->escapar($_SERVER['HTTP_USER_AGENT']),
+      'otp' => $otpCode
+    ];
+    $data['log_log'] = print_r($infoInicioSesion, true);
+    $logModel = new Administracion_Model_DbTable_Log();
+    $logModel->insert($data);
+  }
+
+  // Crea la sesión del usuario autenticado y lo redirige según su nivel
+  private function iniciarSesion($user)
+  {
+    Session::getInstance()->set("kt_login_attempt", "");
+    Session::getInstance()->set("kt_login_id", $user->user_id);
+    Session::getInstance()->set("kt_login_level", $user->user_level);
+    Session::getInstance()->set("kt_login_user", $user->user_user);
+    Session::getInstance()->set("kt_login_aerolinea", $user->user_aerolinea);
+    Session::getInstance()->set("kt_login_name", $user->user_names . " " . $user->user_lastnames);
+    Session::getInstance()->set("kt_login_uid", $user->user_uid);
+
+    Session::getInstance()->set("user_ip", $this->getRealIp());
+    Session::getInstance()->set("user_agent", $_SERVER['HTTP_USER_AGENT']);
+    $omegaToken = md5($user->user_id . "_OMEGA");
+    Session::getInstance()->set("OMEGA_TOKEN", $omegaToken);
+    Session::getInstance()->set("user_puedeover", $user->user_puedeover);
+    $_SESSION['user_agent'] = $_SERVER['HTTP_USER_AGENT'];
+    $_SESSION['kt_stw_ows'] = md5($_SERVER['HTTP_HOST'] . "OMEGA");
+
+    if ($user->user_level == 3 || ($user->user_level == 2 && $user->user_puedeover == 1)) {
+      header('Location: /administracion/index/seleccionarover');
+    } else {
+      header('Location: ' . Administracion_Model_Acceso::home());
+    }
+  }
+
+  // Verifica si la cookie del navegador corresponde a un dispositivo confiable vigente del usuario
+  private function esDispositivoConfiable($userId)
+  {
+    $token = $_COOKIE[self::COOKIE_DISPOSITIVO] ?? '';
+    if (!is_string($token) || strlen($token) != 64 || !ctype_xdigit($token)) {
+      return false;
+    }
+    $dispositivosModel = new Administracion_Model_DbTable_Dispositivos();
+    $dispositivo = $dispositivosModel->getValido($userId, hash('sha256', $token));
+    if (!$dispositivo) {
+      return false;
+    }
+    $dispositivosModel->editField($dispositivo->dispositivo_id, 'dispositivo_ultimo_uso', date('Y-m-d H:i:s'));
+    return true;
+  }
+
+  // Registra el navegador actual como confiable por DIAS_DISPOSITIVO días
+  private function recordarDispositivo($user)
+  {
+    $token = bin2hex(random_bytes(32));
+    $vence = time() + self::DIAS_DISPOSITIVO * 86400;
+
+    $dispositivosModel = new Administracion_Model_DbTable_Dispositivos();
+    $dispositivosModel->limpiarVencidos();
+    $dispositivosModel->insert([
+      'dispositivo_usuario' => $user->user_id,
+      'dispositivo_token' => hash('sha256', $token),
+      'dispositivo_navegador' => $_SERVER['HTTP_USER_AGENT'],
+      'dispositivo_ip' => $this->getRealIp(),
+      'dispositivo_vence' => date('Y-m-d H:i:s', $vence),
+    ]);
+
+    setcookie(self::COOKIE_DISPOSITIVO, $token, [
+      'expires' => $vence,
+      'path' => '/administracion',
+      'secure' => $this->esHttps(),
+      'httponly' => true,
+      'samesite' => 'Lax',
+    ]);
+  }
+
+  private function esHttps()
+  {
+    return (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+      || ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https'
+      || ($_SERVER['SERVER_PORT'] ?? '') == 443;
+  }
+
+  // Escapa valores que no vienen de _getSanitizedParam (BD, $_SERVER) antes de usarlos en SQL
+  private function escapar($valor)
+  {
+    return mysqli_real_escape_string(App::getDbConnection()->getConnection(), (string) $valor);
+  }
+
   function getRealIp()
   {
     if (!empty($_SERVER['HTTP_CF_CONNECTING_IP'])) {
@@ -317,6 +439,7 @@ class Administracion_loginuserController extends Controllers_Abstract
   }
 
   // Método para obtener el número de intentos fallidos de un usuario
+  // $user debe venir ya escapado (_getSanitizedParam o escapar())
   public function getIntentos($user)
   {
     $bloqueosModel = new Administracion_Model_DbTable_Bloqueos();

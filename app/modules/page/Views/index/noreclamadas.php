@@ -8,7 +8,7 @@
       <table class="table table-striped">
         <thead>
           <tr>
-            <th colspan="6" style="border-bottom: 0; padding: 0 !important;">
+            <th colspan="9" style="border-bottom: 0; padding: 0 !important;">
               <div class="d-flex justify-content-center" style="height: 70px;">
                 <img src="/skins/administracion/images/dorado-logo.png" alt="" style="">
               </div>
@@ -17,6 +17,9 @@
           <tr>
             <th scope="col">Código</th>
             <th scope="col">Aerolínea</th>
+            <th scope="col">Vuelo</th>
+            <th scope="col">Salida</th>
+            <th scope="col">Tiempo restante</th>
             <th scope="col">Estado</th>
             <th scope="col">Tiempo de espera</th>
             <th scope="col">Fecha de ingreso</th>

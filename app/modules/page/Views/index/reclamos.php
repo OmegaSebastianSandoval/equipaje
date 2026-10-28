@@ -1,26 +1,35 @@
 <div class="container h-100">
   <div class="d-flex h-100 align-items-center">
-    <div class="row maletas-bx">
+    <div class="row maletas-bx reclamo-bx w-100 mx-0">
       <div class="col-lg-5 col-md-12">
         <div class="d-flex justify-content-center">
           <img src="/skins/administracion/images/maletas.png" alt="">
         </div>
       </div>
       <div class="col-lg-7 col-md-12">
-        <form action="/page/index/update" method="post" class="row">
-          <div class="col-12 mb-5">
+        <form class="row" id="reclamo-form" onsubmit="return false;">
+          <div class="col-12 mb-5 d-none d-lg-block">
           </div>
-          <div class="col-12 mb-5">
+          <div class="col-12 mb-4 mb-lg-5">
             <h2>
               Reclamo de Maletas
             </h2>
           </div>
+          <?php if (!$this->consentimiento) { ?>
+            <div class="col-12">
+              <div class="reclamo-consentimiento">
+                <p>Para reclamar maletas este sitio necesita usar cookies que mantienen tu sesión activa.</p>
+                <button type="button" id="reclamo-consentimiento">Aceptar</button>
+              </div>
+            </div>
+          <?php } ?>
           <div class="col-12">
             <div class="bag-code-bx">
-              <label for="codigo">Código de la maleta</label>
+              <label for="maleta_codigo">Código de la maleta</label>
               <div class="bag-code-wrapper">
                 <input type="text" name="maleta_codigo" id="maleta_codigo" class="form-control"
-                  placeholder="Escribe el código de la maleta">
+                  placeholder="Escribe el código de la maleta" inputmode="numeric" maxlength="10" autocomplete="off"
+                  <?php echo $this->consentimiento ? '' : 'disabled'; ?>>
                 <label for="maleta_codigo">
                   <i class="fa-solid fa-gun"></i>
                 </label>
@@ -30,28 +39,23 @@
               </div>
               <p>
                 Puedes escanear el código de la maleta usando la pistola lectora de códigos, usando tu cámara o
-                escribirlo manualmente
+                escribirlo manualmente. Puedes agregar varias maletas y reclamarlas todas juntas.
               </p>
             </div>
           </div>
-          <div class="col-lg-6 col-md-12">
-            <label for="">Aerolínea</label>
-            <input type="hidden" name="maleta_aerolinea" id="maleta_aerolinea" class="form-control" />
-            <input type="text" name="" id="maleta_aerolinea_name" class="form-control" disabled/>
+          <div class="col-12">
+            <div id="reclamo-aviso" class="reclamo-aviso" role="status" aria-live="polite"></div>
           </div>
-          <div class="col-lg-6 col-md-12">
-            <label for="">Estado</label>
-            <select type="text" name="maleta_estado" id="maleta_estado" class="form-control" disabled>
-              <option value="3" selected disabled></option>
-              <option value="">Sin reclamar</option>
-              <option value="1">Reclamada</option>
-              <option value="2">maleta no encontrada</option>
-            </select>
+          <div class="col-12">
+            <div id="reclamo-lista" class="reclamo-lista">
+              <p id="reclamo-vacio" class="reclamo-vacio">Escanea o escribe los códigos de las maletas que vas a reclamar.</p>
+            </div>
           </div>
-          <div class="col-md-12 d-flex align-items-end mt-3">
-            <button type="submit" class="registrar" disabled>Reclamar</button>
+          <div class="col-12 d-flex gap-2 mt-3 reclamo-acciones">
+            <button type="button" id="reclamo-limpiar" class="reclamo-limpiar" disabled>Limpiar</button>
+            <button type="button" id="reclamo-enviar" class="registrar" disabled>Reclamar</button>
           </div>
-          <input type="hidden" name="_csrf" value="<?php echo md5(date("Y-m-d")."_OMEGA"); ?>" />
+          <input type="hidden" id="reclamo-csrf" value="<?php echo $this->csrf_reclamos; ?>" />
         </form>
       </div>
     </div>
@@ -104,3 +108,4 @@
     top: 0;
   }
 </style>
+<script src="/skins/page/js/reclamos.js?v=<?= filemtime(PUBLIC_PATH . 'skins/page/js/reclamos.js') ?>"></script>

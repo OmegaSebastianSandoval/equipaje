@@ -238,6 +238,13 @@
 									</td>
 
 								</tr>
+								<tr>
+									<th scope="row">Alerta de salida (minutos)</th>
+									<td>
+										<input class="input_correo" type="number" min="1" max="600" name="info_pagina_alerta_minutos" id="info_pagina_alerta_minutos" value="<?= $this->content->info_pagina_alerta_minutos ?: 60; ?>" required>
+										<small class="d-block text-muted">Se avisa a la aerolínea cuando faltan estos minutos para la salida de un vuelo con maletas sin reclamar.</small>
+									</td>
+								</tr>
 							</tbody>
 						</table>
 

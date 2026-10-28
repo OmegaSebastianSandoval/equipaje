@@ -4,6 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="format-detection" content="telephone=no">
   <title><?= $this->_titlepage ?></title>
   <?php $infopageModel = new Page_Model_DbTable_Informacion();
     $infopage = $infopageModel->getById(1);
@@ -14,7 +15,7 @@
   <!-- Font Awesome -->
   <link rel="stylesheet" href="/components/Font-Awesome/css/all.css">
   <!-- CSS Global -->
-  <link rel="stylesheet" href="/skins/administracion/css/global.css?v=2">
+  <link rel="stylesheet" href="/skins/administracion/css/global.css?v=5">
 
   <link rel="shortcut icon" href="/images/<?= $infopage->info_pagina_favicon; ?>">
 

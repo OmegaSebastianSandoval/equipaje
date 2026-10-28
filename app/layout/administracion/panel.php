@@ -4,6 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="format-detection" content="telephone=no">
     <title>
         <?= $this->_titlepage ?>
     </title>
@@ -14,7 +15,8 @@
     ?>
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="/components/bootstrap/css/bootstrap.min.css">
-    <link rel="stylesheet" href="/components/bootstrap-switch/dist/css/bootstrap3/bootstrap-switch.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/components/bootstrap-switch/dist/css/bootstrap3/bootstrap-switch.min.css"
+        rel="stylesheet">
     <link rel="stylesheet" href="/components/bootstrap-datepicker/css/bootstrap-datepicker3.standalone.min.css">
     <!-- Fileinput -->
     <link rel="stylesheet" href="/components/bootstrap-fileinput/css/fileinput.css">
@@ -23,7 +25,8 @@
     <!-- Colorpicker -->
     <link rel="stylesheet" href="/components/bootstrap-colorpicker/dist/css/bootstrap-colorpicker.min.css">
     <!-- Global CSS -->
-    <link rel="stylesheet" href="/skins/administracion/css/global.css?v=1">
+    <link rel="stylesheet"
+        href="/skins/administracion/css/global.css?v=<?= filemtime(PUBLIC_PATH . 'skins/administracion/css/global.css') ?>">
     <link rel="shortcut icon" href="/images/<?= $infopage->info_pagina_favicon; ?>">
 
     <script type="text/javascript">
@@ -34,7 +37,7 @@
         var point = false;
         var zoom = 10;
 
-        function setValuesMap(longitud, latitud, punto, zoomm, icono) {
+        function setValuesMap (longitud, latitud, punto, zoomm, icono) {
             longitude = longitud;
             latitude = latitud;
             if (punto) {
@@ -48,7 +51,7 @@
             }
         }
 
-        function initializeMap() {
+        function initializeMap () {
             var mapOptions = {
                 zoom: parseInt(zoom),
                 center: new google.maps.LatLng(longitude, longitude),
@@ -71,15 +74,18 @@
     <header>
         <div class="container-fluid">
             <div class="row align-items-center">
-                <div class="col-3">
+                <div class="col-3 header-logo">
+                    <button type="button" id="menu-toggle" class="menu-toggle" aria-label="Abrir menú"
+                        aria-controls="panel-botones" aria-expanded="false"><i class="fas fa-bars"></i></button>
                     <img src="/skins/administracion/images/dorado-logo.png" class="logo-blanco" style="height: 60px;">
                 </div>
-                <div class="col-9">
+                <div class="col-9 header-info">
                     <?= $this->_data['panel_header']; ?>
                 </div>
             </div>
         </div>
     </header>
+    <div id="menu-overlay" class="menu-overlay"></div>
     <div class="container-fluid">
         <div class="row">
             <nav id="panel-botones" class="col-2">
@@ -93,18 +99,19 @@
             </article>
         </div>
     </div>
-    <footer class="panel-derechos col-md-12">&copy;Todos los Derechos Reservados <?php echo date('Y'); ?> - Diseñado por Omega Soluciones Web
+    <footer class="panel-derechos col-md-12">&copy;Todos los Derechos Reservados <?php echo date('Y'); ?> - Diseñado por
+        Omega Soluciones Web
     </footer>
     <!-- Jquery -->
     <script src="/components/jquery/jquery-3.6.0.min.js"></script>
     <!-- Popper -->
     <!--<script src="https://unpkg.com/@popperjs/core@2"></script> -->
-	  <script src="/components/umd/popper.min.js"></script>
+    <script src="/components/umd/popper.min.js"></script>
     <!-- Bootstrap Js -->
     <script src="/components/bootstrap/js/bootstrap.min.js"></script>
     <script src="/components/bootstrap-datepicker/js/bootstrap-datepicker.min.js">
     </script>
-	        <!-- Charts -->
+    <!-- Charts -->
     <script src="/components/chart/chart.min.js"></script>
     <script src="/components/chart/chartjs-plugin-datalabels@2.js"></script>
     <script src="/components/bootstrap-datepicker/locales/bootstrap-datepicker.es.min.js">
@@ -119,12 +126,29 @@
     <script src="/components/bootstrap-switch/dist/js/bootstrap-switch.min.js"></script>
     <script src="/components/bootstrap-colorpicker/dist/js/bootstrap-colorpicker.min.js"></script>
     <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>-->
-	<script src="/components/quagga/quagga.min.js"></script>
+    <script src="/components/quagga/quagga.min.js"></script>
 
     <!-- main Js -->
-    <script src="/skins/administracion/js/main.js?v=1"></script>
+    <script
+        src="/skins/administracion/js/main.js?v=<?= filemtime(PUBLIC_PATH . 'skins/administracion/js/main.js') ?>"></script>
     <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-maskmoney/3.0.2/jquery.maskMoney.min.js" integrity="sha512-Rdk63VC+1UYzGSgd3u2iadi0joUrcwX0IWp2rTh6KXFoAmgOjRS99Vynz1lJPT8dLjvo6JZOqpAHJyfCEZ5KoA==" crossorigin="anonymous"></script> -->
-	 <script src="/components/mask/jquery.maskMoney.min.js"></script>
+    <script src="/components/mask/jquery.maskMoney.min.js"></script>
+    <script>
+        (function () {
+            var body = document.body;
+            var toggle = document.getElementById('menu-toggle');
+            var overlay = document.getElementById('menu-overlay');
+            if (!toggle || !overlay) return;
+            function setMenu (open) {
+                body.classList.toggle('menu-abierto', open);
+                toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+            }
+            toggle.addEventListener('click', function () { setMenu(!body.classList.contains('menu-abierto')); });
+            overlay.addEventListener('click', function () { setMenu(false); });
+            document.addEventListener('keydown', function (e) { if (e.key === 'Escape') setMenu(false); });
+            window.addEventListener('resize', function () { if (window.innerWidth >= 992) setMenu(false); });
+        })();
+    </script>
 </body>
 
 </html>

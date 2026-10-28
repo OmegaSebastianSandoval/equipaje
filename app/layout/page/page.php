@@ -12,8 +12,8 @@
   <link rel="stylesheet" href="/components/bootstrap/css/bootstrap.min.css">
 
   <!-- Global CSS -->
-  <link rel="stylesheet" href="/skins/page/css/global.css?v=2">
-  <link rel="stylesheet" href="/skins/page/css/responsive.css?v=2">
+  <link rel="stylesheet" href="/skins/page/css/global.css?v=<?= filemtime(PUBLIC_PATH . 'skins/page/css/global.css') ?>">
+  <link rel="stylesheet" href="/skins/page/css/responsive.css?v=<?= filemtime(PUBLIC_PATH . 'skins/page/css/responsive.css') ?>">
 
   <!-- FontAwesome -->
   <link rel="stylesheet" href="/components/Font-Awesome/css/all.css">
@@ -41,7 +41,7 @@
 	<script src="/components/quagga/quagga.min.js"></script>
 
   <!-- Main Js -->
-  <script src="/skins/page/js/main.js?v=3"></script>
+  <script src="/skins/page/js/main.js?v=<?= filemtime(PUBLIC_PATH . 'skins/page/js/main.js') ?>"></script>
 
   <!-- Recaptcha -->
   <script src='https://www.google.com/recaptcha/api.js'></script>
@@ -50,6 +50,7 @@
   <?php echo $this->_data['scripts'];  ?>
   <script src="https://www.google.com/recaptcha/api.js" async defer></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="format-detection" content="telephone=no">
  
 </head>
 

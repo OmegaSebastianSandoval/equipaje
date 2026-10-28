@@ -16,7 +16,7 @@ class Administracion_indexController extends Controllers_Abstract
         $id = Session::getInstance()->get("kt_login_id");
         $level = Session::getInstance()->get("kt_login_level");
         if (isset($id) && $id > 0 && $level != 2) {
-            header('Location: /administracion/panel');
+            header('Location: ' . Administracion_Model_Acceso::home());
         }
         $csrf = Session::getInstance()->get('csrf')[$this->_csrf_section];
         $this->_view->csrf = $csrf;
@@ -30,12 +30,18 @@ class Administracion_indexController extends Controllers_Abstract
         $id = Session::getInstance()->get("kt_login_id");
         $level = Session::getInstance()->get("kt_login_level");
         if (isset($id) && $id > 0 && $level != 2) {
-            header('Location: /administracion/panel');
+            header('Location: ' . Administracion_Model_Acceso::home());
+        }
+        if (!Session::getInstance()->get("user_uid")) {
+            header('Location: /administracion/');
+            exit;
         }
         $csrf = Session::getInstance()->get('csrf')[$this->_csrf_section];
         $this->_view->csrf = $csrf;
         $this->_view->error_login = Session::getInstance()->get("error_login");
         Session::getInstance()->set("error_login", "");
+        $this->_view->mensaje_otp = Session::getInstance()->get("mensaje_otp");
+        Session::getInstance()->set("mensaje_otp", "");
     }
 
     public function olvidoAction()
@@ -45,7 +51,7 @@ class Administracion_indexController extends Controllers_Abstract
         $id = Session::getInstance()->get("kt_login_id");
         $level = Session::getInstance()->get("kt_login_level");
         if (isset($id) && $id > 0 && $level != 2) {
-            header('Location: /administracion/panel');
+            header('Location: ' . Administracion_Model_Acceso::home());
         }
         $csrf = Session::getInstance()->get('csrf')[$this->_csrf_section];
         $this->_view->csrf = $csrf;
@@ -77,6 +83,9 @@ class Administracion_indexController extends Controllers_Abstract
                 $modelUser = new Core_Model_DbTable_User();
                 $modelUser->changePassword($id_user, $password);
                 $modelUser->editCode($id_user, $csrf);
+                // Al cambiar la clave se deja de confiar en los dispositivos recordados
+                $dispositivosModel = new Administracion_Model_DbTable_Dispositivos();
+                $dispositivosModel->revocarUsuario($id_user);
                 $this->_view->message = "Sea cambiado su contraseña satisfactoriamente.";
             } else {
                 $this->_view->code = $this->_getSanitizedParam("code");
@@ -149,7 +158,7 @@ class Administracion_indexController extends Controllers_Abstract
         if (
             Session::getInstance()->get("over") != null
         ) {
-            header('Location: /administracion/panel');
+            header('Location: ' . Administracion_Model_Acceso::home());
             exit;
         }
 
@@ -175,13 +184,13 @@ class Administracion_indexController extends Controllers_Abstract
         }
 
 
-        header('Location: /administracion/panel');
+        header('Location: ' . Administracion_Model_Acceso::home());
     }
 
     public function saliroverAction()
     {
         Session::getInstance()->set("over", null);
         Session::getInstance()->set("step", null);
-        header('Location: /administracion/panel');
+        header('Location: ' . Administracion_Model_Acceso::home());
     }   
 }

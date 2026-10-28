@@ -1,5 +1,19 @@
 <div class="container-fluid">
 	<div class="row">
+		<div class="col-12">
+			<div class="div-dashboard alertas-resumen">
+				<div class="alertas-resumen-icono"><i class="fas fa-bell"></i></div>
+				<div class="alertas-resumen-texto">
+					<h2>Alertas de salida</h2>
+					<p>Se avisa a la aerolínea cuando faltan
+						<strong><?= $this->info->info_pagina_alerta_minutos ? (int) $this->info->info_pagina_alerta_minutos : 60; ?> minutos</strong>
+						para la salida de un vuelo con maletas sin reclamar.</p>
+				</div>
+				<a class="btn btn-azul" href="/administracion/informacion/alertas"><i class="fas fa-pen-alt"></i> Configurar alertas</a>
+			</div>
+		</div>
+	</div>
+	<div class="row">
 		<div class="col-7 col-xl-8">
 			<div class="div-dashboard d-none">
 				<h2>

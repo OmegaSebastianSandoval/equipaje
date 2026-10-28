@@ -412,3 +412,218 @@ header .header .logo {
   }
 }
 
+/* Reclamo por lotes (/page/index/reclamos) */
+.maletas-bx .reclamo-consentimiento{
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 20px;
+  padding: 12px 15px;
+  border-radius: 5px;
+  background-color: #eef4fb;
+  color: #094483;
+  font-size: 14px;
+}
+.maletas-bx .reclamo-consentimiento p{
+  margin: 0;
+}
+.maletas-bx form button#reclamo-consentimiento{
+  flex-shrink: 0;
+  padding: 8px 20px;
+  border: none;
+  border-radius: 5px;
+  background-color: #094483;
+  color: #fff;
+}
+.maletas-bx .reclamo-aviso:empty{
+  display: none;
+}
+.maletas-bx .reclamo-aviso{
+  margin-top: 15px;
+  padding: 10px 15px;
+  border-radius: 5px;
+  font-size: 14px;
+}
+.maletas-bx .reclamo-aviso.aviso-ok{
+  background-color: #eef8f2;
+  color: #146c43;
+}
+.maletas-bx .reclamo-aviso.aviso-error{
+  background-color: #fdf0f1;
+  color: #b02a37;
+}
+.maletas-bx .reclamo-lista{
+  margin-top: 15px;
+  max-height: 420px;
+  overflow-y: auto;
+  border: 1px solid #e3e3e3;
+  border-radius: 5px;
+}
+.maletas-bx .reclamo-vacio{
+  margin: 0;
+  padding: 20px 15px;
+  color: #9b9a9a;
+  text-align: center;
+  font-size: 14px;
+}
+.maletas-bx .reclamo-item{
+  padding: 10px 15px;
+  border-bottom: 1px solid #e3e3e3;
+  border-left: 4px solid transparent;
+}
+.maletas-bx .reclamo-item:last-child{
+  border-bottom: none;
+}
+.maletas-bx .reclamo-item-error{
+  background-color: #fdf0f1;
+  /* border-left-color: #dc3545; */
+}
+.maletas-bx .reclamo-item-ok{
+  background-color: #eef8f2;
+  /* border-left-color: #198754; */
+}
+.maletas-bx .reclamo-item-top{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.maletas-bx .reclamo-info{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.maletas-bx .reclamo-codigo{
+  font-size: 1.1rem;
+  color: #094483;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.5px;
+}
+.maletas-bx .reclamo-aerolinea{
+  color: #6e6e6e;
+  font-size: 14px;
+}
+.maletas-bx .reclamo-estado{
+  font-size: 1.1rem;
+}
+.maletas-bx .reclamo-quitar{
+  margin-left: auto;
+  padding: 2px 8px;
+  border: none;
+  background: none;
+  color: #9b9a9a;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+.maletas-bx .reclamo-quitar:hover{
+  color: #dc3545;
+}
+.maletas-bx .reclamo-detalle{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin-top: 6px;
+  color: #6e6e6e;
+  font-size: 14px;
+}
+.maletas-bx .reclamo-urgencia-alta,
+.maletas-bx .reclamo-urgencia-salio{
+  color: #dc3545;
+  font-weight: bold;
+}
+.maletas-bx .reclamo-urgencia-media{
+  color: #b8860b;
+  font-weight: bold;
+}
+.maletas-bx .reclamo-mensaje{
+  margin-top: 4px;
+  color: #b02a37;
+  font-size: 13px;
+}
+.maletas-bx form button.reclamo-limpiar{
+  height: 50px;
+  padding: 10px 20px;
+  border: 1px solid #094483;
+  border-radius: 5px;
+  background-color: #fff;
+  color: #094483;
+  font-size: 1.2rem;
+}
+.maletas-bx form button.reclamo-limpiar:disabled{
+  border-color: #ccc;
+  color: #ccc;
+  cursor: not-allowed;
+}
+.maletas-bx form .reclamo-acciones button.registrar{
+  flex: 1;
+  margin-top: 0;
+}
+.maletas-bx form .reclamo-acciones button.reclamo-limpiar{
+  flex-shrink: 0;
+}
+
+/* Responsive del reclamo por lotes */
+@media screen and (max-width: 991.98px){
+  .maletas-bx.reclamo-bx{
+    padding: 40px 24px;
+    margin: 40px 0;
+  }
+  .maletas-bx.reclamo-bx img{
+    max-width: 160px;
+    min-width: 0;
+    width: 40%;
+  }
+  .maletas-bx.reclamo-bx form h2{
+    font-size: 32px;
+  }
+}
+@media screen and (max-width: 575.98px){
+  .maletas-bx.reclamo-bx{
+    padding: 24px 12px;
+    margin: 16px 0;
+    border-radius: 20px;
+  }
+  .maletas-bx.reclamo-bx img{
+    max-width: 110px;
+    margin-bottom: 12px;
+  }
+  .maletas-bx.reclamo-bx form h2{
+    font-size: 26px;
+    margin: 0;
+  }
+  .maletas-bx.reclamo-bx .bag-code-wrapper{
+    gap: 6px;
+  }
+  .maletas-bx.reclamo-bx .bag-code-wrapper input{
+    flex: 1;
+    min-width: 0;
+  }
+  .maletas-bx.reclamo-bx .bag-code-wrapper label,
+  .maletas-bx.reclamo-bx .bag-code-wrapper button{
+    flex-shrink: 0;
+  }
+  .maletas-bx .reclamo-consentimiento{
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .maletas-bx .reclamo-item{
+    padding: 10px 12px;
+  }
+  .maletas-bx .reclamo-info{
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+  }
+  .maletas-bx .reclamo-detalle{
+    gap: 2px 12px;
+    font-size: 13px;
+  }
+  .maletas-bx form .reclamo-acciones button.reclamo-limpiar,
+  .maletas-bx form .reclamo-acciones button.registrar{
+    height: 44px;
+    padding: 8px 14px;
+    font-size: 14px;
+  }
+}
+

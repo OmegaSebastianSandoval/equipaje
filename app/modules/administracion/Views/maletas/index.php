@@ -1,9 +1,18 @@
 <h1 class="titulo-principal"><i class="fas fa-cogs"></i> <?php echo $this->titlesection; ?></h1>
 <div class="container-fluid">
+  <style>
+    #toggle-filtros-maletas .fa-chevron-down { transition: transform .2s ease; }
+    #toggle-filtros-maletas[aria-expanded="true"] .fa-chevron-down { transform: rotate(180deg); }
+  </style>
+  <button id="toggle-filtros-maletas" class="btn btn-azul w-100 d-lg-none mt-4 mb-3 d-flex align-items-center justify-content-between py-2 px-3" type="button"
+    data-bs-toggle="collapse" data-bs-target="#filtros-maletas" aria-expanded="false" aria-controls="filtros-maletas">
+    <span><i class="fas fa-filter"></i> Filtros</span>
+    <span><small class="mr-2 me-2">Mostrar / ocultar</small><i class="fas fa-chevron-down"></i></span>
+  </button>
   <form action="<?php echo $this->route; ?>" method="post">
-    <div class="content-dashboard">
+    <div id="filtros-maletas" class="content-dashboard collapse d-lg-block">
       <div class="row">
-        <div class="col-3">
+        <div class="col-12 col-sm-6 col-lg-3 mb-2">
           <label>Codigo</label>
           <label class="input-group">
             <div class="input-group-prepend">
@@ -14,7 +23,7 @@
           </label>
         </div>
         <?php if (Session::getInstance()->get('kt_login_level') != '4') { ?>
-          <div class="col-3">
+          <div class="col-12 col-sm-6 col-lg-3 mb-2">
             <label>Aerolinea</label>
             <label class="input-group">
               <div class="input-group-prepend">
@@ -31,7 +40,7 @@
             </label>
           </div>
         <?php } ?>
-        <div class="col-3">
+        <div class="col-12 col-sm-6 col-lg-3 mb-2">
           <label>Estado</label>
           <label class="input-group">
             <div class="input-group-prepend">
@@ -48,7 +57,7 @@
             </select>
           </label>
         </div>
-        <div class="col-3">
+        <div class="col-12 col-sm-6 col-lg-3 mb-2">
           <label>Fecha de ingreso</label>
           <label class="input-group">
             <div class="input-group-prepend">
@@ -59,7 +68,7 @@
               data-provide="datepicker" data-date-format="yyyy-mm-dd" data-date-language="es"></input>
           </label>
         </div>
-        <div class="col-3">
+        <div class="col-12 col-sm-6 col-lg-3 mb-2">
           <label>Fecha salida</label>
           <label class="input-group">
             <div class="input-group-prepend">
@@ -70,7 +79,7 @@
               data-date-format="yyyy-mm-dd" data-date-language="es"></input>
           </label>
         </div>
-        <div class="col-3">
+        <div class="col-12 col-sm-6 col-lg-3 mb-2">
           <label>Hora ingreso</label>
           <label class="input-group">
             <div class="input-group-prepend">
@@ -92,7 +101,7 @@
             </select>
           </label>
         </div>
-        <div class="col-3">
+        <div class="col-12 col-sm-6 col-lg-3 mb-2">
           <label>Hora salida</label>
           <label class="input-group">
             <div class="input-group-prepend">
@@ -114,11 +123,21 @@
             </select>
           </label>
         </div>
-        <div class="col-3">
+        <div class="col-12 col-sm-6 col-lg-3 mb-2">
+          <label>Vuelo</label>
+          <label class="input-group">
+            <div class="input-group-prepend">
+              <span class="input-group-text input-icono fondo-azul "><i class="fas fa-plane"></i></span>
+            </div>
+            <input type="text" class="form-control" name="maleta_vuelo_numero" placeholder="Ej: AV 8484"
+              value="<?php echo $this->getObjectVariable($this->filters, 'maleta_vuelo_numero') ?>"></input>
+          </label>
+        </div>
+        <div class="col-12 col-sm-6 col-lg-3 mb-2">
           <label>&nbsp;</label>
           <button type="submit" class="btn btn-block btn-azul"><i class="fas fa-filter"></i> Filtrar</button>
         </div>
-        <div class="col-3">
+        <div class="col-12 col-sm-6 col-lg-3 mb-2">
           <label>&nbsp;</label>
           <a class="btn btn-block btn-azul-claro " href="<?php echo $this->route; ?>?cleanfilter=1"> <i
               class="fas fa-eraser"></i> Limpiar Filtro</a>
@@ -175,13 +194,13 @@
   <div class="content-dashboard">
     <div class="franja-paginas">
       <div class="row">
-        <div class="col-4">
+        <div class="col-12 col-lg-4 order-2 order-lg-1 mb-2 mb-lg-0">
           <div class="titulo-registro">Se encontraron <?php echo $this->register_number; ?> Registros</div>
         </div>
-        <div class="col-3 text-right">
+        <div class="col-8 col-lg-3 order-3 order-lg-2 text-right">
           <div class="texto-paginas">Registros por pagina:</div>
         </div>
-        <div class="col-1">
+        <div class="col-4 col-lg-1 order-4 order-lg-3">
           <select class="form-control form-control-sm selectpagination">
             <option value="20" <?php if ($this->pages == 20) {
               echo 'selected';
@@ -201,19 +220,19 @@
             </option>
           </select>
         </div>
-        <div class="col-4 d-flex justify-content-end gap-2">
+        <div class="col-12 col-lg-4 order-1 order-lg-4 d-flex justify-content-lg-end mb-3 mb-lg-0">
           <?php if (
             Session::getInstance()->get('kt_login_level') == '1' || Session::getInstance()->get('kt_login_level') == '2' || Session::getInstance()->get('kt_login_level') == '3'
           ) { ?>
-            <div class="text-right"><a class="btn btn-sm btn-success" href="<?php echo $this->route . "/registrar"; ?>">
+            <div class="text-right flex-fill flex-lg-grow-0 mr-2 me-2"><a class="btn btn-sm btn-success btn-block" href="<?php echo $this->route . "/registrar"; ?>">
                 <i class="fas fa-plus-square"></i> Registrar</a></div>
-            <div class="text-right"><a class="btn btn-sm btn-success" href="<?php echo $this->route . "/reclamar"; ?>">
+            <div class="text-right flex-fill flex-lg-grow-0"><a class="btn btn-sm btn-success btn-block" href="<?php echo $this->route . "/reclamar"; ?>">
                 <i class="fas fa-plus-square"></i> Reclamar</a></div>
           <?php } ?>
         </div>
       </div>
     </div>
-    <div class="content-table">
+    <div class="content-table table-responsive">
       <table class=" table table-striped  table-hover table-administrator text-left">
         <thead>
           <tr>
@@ -226,6 +245,10 @@
             <td>Hora ingreso</td>
             <td>Hora salida</td>
             <td>Over</td>
+            <td>Vuelo</td>
+            <td>Salida</td>
+            <td>Tiempo restante</td>
+            <td>Margen al registrar</td>
             <td width="100"></td>
           </tr>
         </thead>
@@ -233,7 +256,17 @@
           <?php foreach ($this->lists as $content) { ?>
            
             <?php $id = $content->maleta_id; ?>
-            <tr>
+            <?php
+            $salida = $this->salidas[$id];
+            $pendiente = $content->maleta_estado == '';
+            $claseFila = '';
+            if ($pendiente && in_array($salida['urgencia'], ['alta', 'salio'])) {
+              $claseFila = 'table-danger';
+            } elseif ($pendiente && $salida['urgencia'] == 'media') {
+              $claseFila = 'table-warning';
+            }
+            ?>
+            <tr class="<?= $claseFila; ?>">
               <td><?= $content->maleta_codigo; ?></td>
               <td><?= $this->list_maleta_aerolinea[$content->maleta_aerolinea]; ?>
               <td><?= $this->list_maleta_aerolinea[$content->maleta_aerolinea_conexion]; ?>
@@ -253,6 +286,16 @@
 
                 ?>
               </td>
+              <td><?= $salida['vuelo']; ?></td>
+              <td>
+                <?php if ($salida['salida_programada']) { ?>
+                  <span data-bs-toggle="tooltip" title="Programada: <?= $salida['salida_programada']; ?>"><?= $salida['salida']; ?> <i class="fas fa-clock text-danger"></i></span>
+                <?php } else { ?>
+                  <?= $salida['salida']; ?>
+                <?php } ?>
+              </td>
+              <td><?= $pendiente ? $salida['tiempo_restante'] : ''; ?></td>
+              <td><?= $content->maleta_minutos_disponibles !== null ? Core_Model_Vuelos::formatoMinutos($content->maleta_minutos_disponibles) : ''; ?></td>
               <td class="text-right">
                 <div>
                   <?php if (Session::getInstance()->get('kt_login_level') == '1') { ?>

@@ -95,7 +95,7 @@
 				</div>
 			</div>
 		</div>
-		<div class="content-table">
+		<div class="content-table table-responsive">
 			<table class=" table table-striped  table-hover table-administrator text-left">
 				<thead>
 					<tr>
@@ -103,6 +103,7 @@
 						<td>Correo</td>
 						<td>Teléfono</td>
 						<td>C&oacute;digo</td>
+						<td>IATA</td>
 						<td width="100"></td>
 					</tr>
 				</thead>
@@ -114,6 +115,7 @@
 								<td><?= $content->aerolinea_correo; ?></td>
 								<td><?= $content->aerolinea_telefono; ?></td>
 								<td><?= $content->aerolinea_codigo; ?></td>
+								<td><?= $content->aerolinea_iata ?: '<span class="text-danger">Sin IATA</span>'; ?></td>
 								<td class="text-right">
 									<div>
 										<a class="btn btn-azul btn-sm" href="<?php echo $this->route; ?>/manage?id=<?= $id ?>"

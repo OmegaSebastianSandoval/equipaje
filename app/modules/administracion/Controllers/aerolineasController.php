@@ -237,6 +237,7 @@ class Administracion_aerolineasController extends Administracion_mainController
 		$data['aerolinea_telefono'] = $this->_getSanitizedParam("aerolinea_telefono");
 		$data['aerolinea_contrasena'] = $this->_getSanitizedParam("aerolinea_contrasena");
 		$data['aerolinea_codigo'] = $this->_getSanitizedParam("aerolinea_codigo");
+		$data['aerolinea_iata'] = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', $this->_getSanitizedParam("aerolinea_iata")));
 		$data['aerolinea_imagen'] = "";
 		$data['aerolinea_correo_over'] = $this->_getSanitizedParam("aerolinea_correo_over");
     $data['aerolinea_telefono_over'] = $this->_getSanitizedParam("aerolinea_telefono_over");

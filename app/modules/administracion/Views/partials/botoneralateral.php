@@ -11,14 +11,14 @@ $isLevel3 = $loginLevel === '3';
 $isLevel4 = $loginLevel === '4';
 
 // Dashboard
-$canSeeDashboard = $isAdmin || $isLevel2 || $isLevel3;
+$canSeeDashboard = $isAdmin || $isLevel2;
 $canSeeDashboardOver = $isAdmin || $isLevel3 || ($isLevel2 && $canOver);
 
 // Over
-$canEnterOrChangeOver = $isLevel3 || ($isLevel2 && $canOver);
+$canEnterOrChangeOver = $isAdmin || $isLevel3 || ($isLevel2 && $canOver);
 $hasActiveOver = $over !== null;
-$canExitOver = $isLevel2 && $canOver && $hasActiveOver;
-$overActionText = ($isLevel3 || ($isLevel2 && $canOver && $hasActiveOver))
+$canExitOver = ($isAdmin || ($isLevel2 && $canOver)) && $hasActiveOver;
+$overActionText = ($isLevel3 || (($isAdmin || ($isLevel2 && $canOver)) && $hasActiveOver))
   ? 'Seleccionar/Cambiar Over'
   : 'Entrar y Seleccionar Over';
 ?>
@@ -79,6 +79,14 @@ $overActionText = ($isLevel3 || ($isLevel2 && $canOver && $hasActiveOver))
       Administrar Contenidos
     </a>
   </li> -->
+  <?php if ($isAdmin) { ?>
+    <li <?php if ($this->botonpanel == 9) { ?>class="activo" <?php } ?>>
+      <a href="/administracion/informacion/alertas">
+        <i class="fas fa-bell"></i>
+        Alertas de salida
+      </a>
+    </li>
+  <?php } ?>
   <?php if ($isAdmin) { ?>
     <li <?php if ($this->botonpanel == 4) { ?>class="activo" <?php } ?>>
       <a href="/administracion/usuario">

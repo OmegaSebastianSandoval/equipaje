@@ -76,16 +76,13 @@
   }
 </style>
 
-<div class="row mb-3">
-  <div class="col-12">
+<section class="container-fluid dashboard-charts mb-5">
+  <div class="mb-4">
     <h2 class="font-weight-bold" style="font-family: 'Barlow', sans-serif; color: var(--dash-ink);">Dashboard
       Estadísticas Over</h2>
-    <p style="font-family: 'Space Grotesk', sans-serif; color: var(--dash-muted);">Análisis detallado de maletas en
+    <p class="mb-0" style="font-family: 'Space Grotesk', sans-serif; color: var(--dash-muted);">Análisis detallado de maletas en
       contingencia</p>
   </div>
-</div>
-
-<section class="container-fluid dashboard-charts mb-5">
   <div class="dashboard-charts-grid">
 
     <!-- GRAFICAS EXCLUSIVAS OVER -->

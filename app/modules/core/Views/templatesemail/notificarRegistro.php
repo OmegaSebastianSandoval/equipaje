@@ -22,7 +22,7 @@
       </p>
       <p>
         <span
-          style="color: #6e6e6e; background-color: #f4f5f5; display: block; padding: 10px 15px; border-radius: 5px; text-decoration: none; text-align: center;"><?php echo $this->code; ?></span>
+          style="color: #6e6e6e; background-color: #f4f5f5; display: block; padding: 10px 15px; border-radius: 5px; text-decoration: none; text-align: center;"><?php echo Core_Model_Sendingemail::codigoSinEnlace($this->code); ?></span>
       </p>
     </div>
   </div>

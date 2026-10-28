@@ -8,26 +8,29 @@
       <table class="table table-striped">
         <thead>
           <tr>
-            <th colspan="7" style="border-bottom: 0; padding: 0 !important;">
+            <th colspan="10" style="border-bottom: 0; padding: 0 !important;">
               <div class="d-flex justify-content-center" style="height: 70px;">
                 <img src="/skins/administracion/images/dorado-logo.png" alt="" style="">
               </div>
             </th>
           </tr>
           <tr>
-            <th colspan="7"
-              style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important; padding: 15px 20px !important; border: none;">
+            <th colspan="10"
+              style="padding: 15px 20px !important; border: none; border-top: 2px solid #ffd04f;">
               <div style="display: flex; align-items: center; gap: 12px;">
                 <span
-                  style="background: rgba(255,255,255,0.2); padding: 8px 14px; border-radius: 8px; font-weight: 600; font-size: 0.9rem;">TIPO
+                  style="background: #ffd04f; color: #000; padding: 8px 14px; border-radius: 8px; font-weight: 600; font-size: 0.9rem;">TIPO
                   1</span>
-                <span style="font-size: 1rem; font-weight: 500; color: #fff;">Equipaje over - categoría 1</span>
+                <span style="font-size: 1rem; font-weight: 500; color: #ffd04f;">Equipaje over - categoría 1</span>
               </div>
             </th>
           </tr>
           <tr>
             <th scope="col">Código</th>
             <th scope="col">Aerolínea</th>
+            <th scope="col">Vuelo</th>
+            <th scope="col">Salida</th>
+            <th scope="col">Tiempo restante</th>
             <th scope="col">Estado</th>
             <th scope="col">Tiempo de espera</th>
             <th scope="col">Fecha de ingreso</th>

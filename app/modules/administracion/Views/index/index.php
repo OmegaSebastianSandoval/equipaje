@@ -1,9 +1,9 @@
-<form autocomplete="off" action="/administracion/loginuser" method="post" class="recaptcha-form">
+<form action="/administracion/loginuser" method="post" class="recaptcha-form">
     <div class="form-group">
         <label class="control-label sr-only">Usuario</label>
         <div class="input-group">
             <i class="fas fa-user-tie icon-input-left"></i>
-            <input type="text" class="form-control" id="user" name="user" placeholder="Usuario" required>
+            <input type="text" class="form-control" id="user" name="user" placeholder="Usuario" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" required>
             <div class="help-block with-errors"></div>
         </div>
     </div>
@@ -11,7 +11,7 @@
         <label class="control-label sr-only">Contraseña</label>
         <div class="input-group">
             <i class="fas fa-shield-alt icon-input-left"></i>
-            <input type="password" class="form-control" id="password" name="password" placeholder="Contraseña" required>
+            <input type="password" class="form-control" id="password" name="password" placeholder="Contraseña" autocomplete="current-password" required>
             <div class="help-block with-errors"></div>
         </div>
         <input type="hidden" name="email">
@@ -41,10 +41,27 @@
 </script>
 <script>
     document.querySelector('.recaptcha-form').addEventListener('submit', function(event) {
+       // Evita doble envío (doble clic o Enter repetido)
+       if (this.dataset.enviado === '1') {
+        event.preventDefault();
+        return;
+       }
+       this.dataset.enviado = '1';
+       disableSubmitButton(this);
        if (!(document.cookie.indexOf('consentimiento=aceptado') !== -1)) {
         var fechaExpiracion = new Date();
         fechaExpiracion.setFullYear(fechaExpiracion.getFullYear() + 1);
         document.cookie = "consentimiento=aceptado; expires=" + fechaExpiracion.toUTCString() + "; path=/; SameSite=Lax";
+      }
+    });
+    // Si el navegador restaura la página con "atrás", reactiva el botón
+    window.addEventListener('pageshow', function(event) {
+      if (event.persisted) {
+        const form = document.querySelector('.recaptcha-form');
+        const submitButton = form.querySelector('button[type="submit"]');
+        form.dataset.enviado = '';
+        submitButton.disabled = false;
+        submitButton.textContent = 'Entrar';
       }
     });
 </script>

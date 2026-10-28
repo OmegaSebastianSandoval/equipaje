@@ -183,6 +183,11 @@ class Administracion_usuarioController extends Administracion_mainController
 			if ($content->user_id) {
 				$data = $this->getData();
 				$this->mainModel->update($data, $id);
+				// Al cambiar la clave o inactivar se deja de confiar en los dispositivos recordados
+				if ($data['user_password'] != '' || $data['user_state'] != 1) {
+					$dispositivosModel = new Administracion_Model_DbTable_Dispositivos();
+					$dispositivosModel->revocarUsuario($content->user_id);
+				}
 
 				//LOG
 				unset($data['user_password']);

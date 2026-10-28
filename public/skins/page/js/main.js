@@ -1,3 +1,14 @@
+// Resalta las maletas cuyo vuelo esta por salir (o ya salio) sin ser reclamadas
+function claseUrgencia(urgencia) {
+  if (urgencia === "alta" || urgencia === "salio") {
+    return "table-danger";
+  }
+  if (urgencia === "media") {
+    return "table-warning";
+  }
+  return "";
+}
+
 $(document).ready(function () {
   const intervalTime = 10000; // 10 segundos
   let currentPage = 0;
@@ -32,9 +43,12 @@ $(document).ready(function () {
     $("#baggageTbody").empty();
     pageItems.forEach((item) => {
       $("#baggageTbody").append(`
-                <tr>
+                <tr class="${claseUrgencia(item.urgencia)}">
                     <td>${item.maleta_codigo}</td>
                     <td>${item.aerolinea_imagen ? `<img src="/images/${item.aerolinea_imagen}" alt="">` : item.aerolinea_nombre}</td>
+                    <td>${item.vuelo !== "—" ? `<strong>${item.vuelo}</strong>` : item.vuelo}</td>
+                    <td>${item.salida || "—"}</td>
+                    <td>${item.tiempo_restante}</td>
                     <td><h5><span class="badge text-bg-${item.maleta_color}">${item.maleta_estado}</span></h5></td>
                     <td>${item.tiempo_espera}</td>
                     <td class="fecha">${item.maleta_fingreso}</td>
@@ -90,9 +104,12 @@ $(document).ready(function () {
     $("#baggageTbodyOverUno").empty();
     pageItemsOverUno.forEach((item) => {
       $("#baggageTbodyOverUno").append(`
-                <tr>
+                <tr class="${claseUrgencia(item.urgencia)}">
                     <td>${item.maleta_codigo}</td>
                     <td>${item.aerolinea_imagen ? `<img src="/images/${item.aerolinea_imagen}" alt="">` : item.aerolinea_nombre}</td>
+                    <td>${item.vuelo !== "—" ? `<strong>${item.vuelo}</strong>` : item.vuelo}</td>
+                    <td>${item.salida || "—"}</td>
+                    <td>${item.tiempo_restante}</td>
                     <td><h5><span class="badge text-bg-${item.maleta_color}">${item.maleta_estado}</span></h5></td>
                     <td>${item.tiempo_espera}</td>
                     <td class="fecha">${item.maleta_fingreso}</td>
@@ -151,9 +168,12 @@ $(document).ready(function () {
     $("#baggageTbodyOverDos").empty();
     pageItemsOverDos.forEach((item) => {
       $("#baggageTbodyOverDos").append(`
-                <tr>
+                <tr class="${claseUrgencia(item.urgencia)}">
                     <td>${item.maleta_codigo}</td>
                     <td>${item.aerolinea_imagen ? `<img src="/images/${item.aerolinea_imagen}" alt="">` : item.aerolinea_nombre}</td>
+                    <td>${item.vuelo !== "—" ? `<strong>${item.vuelo}</strong>` : item.vuelo}</td>
+                    <td>${item.salida || "—"}</td>
+                    <td>${item.tiempo_restante}</td>
                     <td><h5><span class="badge text-bg-${item.maleta_color}">${item.maleta_estado}</span></h5></td>
                     <td>${item.tiempo_espera}</td>
                     <td class="fecha">${item.maleta_fingreso}</td>
@@ -212,9 +232,12 @@ $(document).ready(function () {
     $("#baggageTbodyOverTres").empty();
     pageItemsOverTres.forEach((item) => {
       $("#baggageTbodyOverTres").append(`
-                <tr>
+                <tr class="${claseUrgencia(item.urgencia)}">
                     <td>${item.maleta_codigo}</td>
                     <td>${item.aerolinea_imagen ? `<img src="/images/${item.aerolinea_imagen}" alt="">` : item.aerolinea_nombre}</td>
+                    <td>${item.vuelo !== "—" ? `<strong>${item.vuelo}</strong>` : item.vuelo}</td>
+                    <td>${item.salida || "—"}</td>
+                    <td>${item.tiempo_restante}</td>
                     <td><h5><span class="badge text-bg-${item.maleta_color}">${item.maleta_estado}</span></h5></td>
                     <td>${item.tiempo_espera}</td>
                     <td class="fecha">${item.maleta_fingreso}</td>
@@ -239,72 +262,7 @@ $(document).ready(function () {
   // OVER 3 FIN
   // **************************************
 });
-$(document).ready(function () {
-  $("#maleta_codigo").on("input", function () {
-    // Remueve cualquier carácter que no sea numérico y limita la longitud a 10
-    var valor = $(this)
-      .val()
-      .replace(/[^0-9]/g, "");
-    if (valor.length > 10) {
-      valor = valor.substring(0, 10);
-    }
-    $(this).val(valor);
-  });
-  $("#maleta_codigo").on("change", function () {
-    let codigo = $(this).val();
-    //Obtener aerolinea de los ultimos digitos 2 al 4
-    let aerolinea = codigo.substring(1, 4);
-    console.log(aerolinea);
-    getAirline(aerolinea);
-    getBag(codigo);
-  });
-  function getAirline($code) {
-    $.ajax({
-      url: "/page/index/getAirline",
-      method: "POST",
-      data: {
-        code: $code,
-      },
-      dataType: "json",
-      success: function (data) {
-        if (data.status == "success") {
-          $("#maleta_aerolinea").val(data.airline_code);
-          $("#maleta_aerolinea_name").val(data.airline_name);
-          $(".registrar").attr("disabled", false);
-          $("#no_ariline").hide();
-        } else {
-          $("#maleta_aerolinea").val("");
-          $("#maleta_aerolinea_name").val("");
-          $("#no_ariline").show(300);
-          $(".registrar").attr("disabled", true);
-        }
-      },
-    });
-  }
-  function getBag($code) {
-    $.ajax({
-      url: "/page/index/getBag",
-      method: "POST",
-      data: {
-        code: $code,
-      },
-      dataType: "json",
-      success: function (data) {
-        if (data.status == "success") {
-          $("#maleta_estado").val(data.maleta_estado);
-          if (data.maleta_estado != 1 && data.maleta_estado != 2) {
-            $(".registrar").attr("disabled", false);
-          } else if (data.maleta_estado == 1) {
-            $(".registrar").attr("disabled", true);
-          }
-        } else {
-          $("#maleta_estado").val("2");
-          $(".registrar").attr("disabled", true);
-        }
-      },
-    });
-  }
-});
+// El reclamo de maletas (#maleta_codigo) se maneja en reclamos.js
 
 document.addEventListener("DOMContentLoaded", function () {
   var videoModal = document.getElementById("videoModal");

@@ -20,6 +20,22 @@ class Core_Model_Sendingemail
   }
 
 
+  /**
+   * Codigo de maleta para los correos. Gmail y Mail de iPhone convierten cualquier numero de 10 digitos
+   * en un enlace tel:, asi que se parte con un caracter invisible (&zwnj;) para que no lo detecten.
+   * @param string $codigo
+   * @return string HTML
+   */
+  public static function codigoSinEnlace($codigo)
+  {
+    $codigo = htmlspecialchars((string) $codigo);
+    if (strlen($codigo) < 6) {
+      return $codigo;
+    }
+    $mitad = (int) floor(strlen($codigo) / 2);
+    return substr($codigo, 0, $mitad) . '&zwnj;' . substr($codigo, $mitad);
+  }
+
   public function forgotpassword($user)
   {
     if ($user) {
@@ -152,6 +168,42 @@ class Core_Model_Sendingemail
     $this->email->getMail()->msgHTML($content);
     $this->email->getMail()->AltBody = $content;
     // $this->email->getMail()->addBCC($informacion->info_pagina_correo_oculto);
+    if ($this->email->sed() == true) {
+      return 1;
+    } else {
+      return 2;
+    }
+  }
+  /**
+   * Alerta de salida proxima: lista las maletas sin reclamar de un vuelo.
+   * Lo llama el cron (sin sesion), por eso el destinatario se decide con $esOver y no con Session::get('over').
+   */
+  public function notificarAlertaVuelo($user, $vuelo, $maletas, $esOver)
+  {
+    $salida = Core_Model_Vuelos::salida($vuelo);
+    $this->_view->user = $user;
+    $this->_view->vuelo = $vuelo;
+    $this->_view->maletas = $maletas;
+    $this->_view->esOver = $esOver;
+    $this->_view->numeroVuelo = Core_Model_Vuelos::numero($vuelo);
+    $this->_view->minutosRestantes = Core_Model_Vuelos::formatoMinutos((int) floor((strtotime($salida) - time()) / 60));
+    if (!$esOver) {
+      $correos = explode(",", $user->aerolinea_correo);
+    } else {
+      $correos = explode(",", $user->aerolinea_correo_over);
+    }
+    if (APPLICATION_ENV != 'development') {
+      foreach ($correos as $correo) {
+        if (trim($correo) != '') {
+          $this->email->getMail()->addAddress(trim($correo), $user->aerolinea_nombre);
+        }
+      }
+    }
+    $this->email->getMail()->addBCC('desarrollo8+2@omegawebsystems.com', 'Desarrollo Omega');
+    $content = $this->_view->getRoutPHP('/../app/modules/core/Views/templatesemail/notificarAlertaVuelo.php');
+    $this->email->getMail()->Subject = 'Alerta: maletas pendientes vuelo ' . $this->_view->numeroVuelo . ' sale a las ' . date('H:i', strtotime($salida));
+    $this->email->getMail()->msgHTML($content);
+    $this->email->getMail()->AltBody = $content;
     if ($this->email->sed() == true) {
       return 1;
     } else {

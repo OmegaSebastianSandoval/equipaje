@@ -1641,3 +1641,1324 @@ header {
   margin-top: 20px;
   margin-bottom: 20px;
 }
+
+
+/* ===== Responsive ===== */
+.menu-toggle,
+.menu-overlay {
+  display: none;
+}
+
+.content-table {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media screen and (max-width: 991.98px) {
+  body {
+    min-width: 0;
+    overflow-x: hidden;
+  }
+
+  header {
+    padding-top: 10px;
+    min-height: 70px;
+  }
+
+  header .header-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 0 0 auto;
+    width: auto;
+  }
+
+  header .header-info {
+    flex: 1 1 0;
+    width: auto;
+    min-width: 0;
+  }
+
+  header .logo-blanco {
+    height: 45px !important;
+    margin-bottom: 0;
+  }
+
+  header .infousuario {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+    font-size: 13px;
+    line-height: 1.2;
+  }
+
+  header .infousuario span {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  header .infousuario i {
+    font-size: 16px;
+  }
+
+  .enlace-salir {
+    margin-left: 0;
+    padding: 4px 14px;
+    font-size: 13px;
+  }
+
+  .menu-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border: 1px solid var(--yellow);
+    border-radius: 6px;
+    background: transparent;
+    color: var(--yellow);
+    font-size: 20px;
+  }
+
+  #panel-botones {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 260px;
+    max-width: 80vw;
+    min-height: 100vh;
+    flex: none;
+    overflow-y: auto;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    z-index: 1050;
+  }
+
+  #panel-botones ul li a {
+    font-size: 14px;
+    padding: 12px 10px;
+  }
+
+  body.menu-abierto #panel-botones {
+    transform: translateX(0);
+  }
+
+  .menu-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.25s ease;
+    z-index: 1040;
+  }
+
+  body.menu-abierto .menu-overlay {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  #contenido_panel {
+    flex: 0 0 100%;
+    max-width: 100%;
+    width: 100%;
+  }
+
+  /* Los formularios usan col-N sin breakpoint: se apilan en pantallas pequeñas */
+  #contenido_general .row > [class*="col-"] {
+    flex: 0 0 100%;
+    max-width: 100%;
+    width: 100%;
+    margin-left: 0;
+  }
+
+  #contenido_general {
+    overflow-x: hidden;
+  }
+
+  /* Tablas sin contenedor: scroll horizontal propio en vez de desbordar la página */
+  #contenido_general table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  #contenido_general .contenedor-informacion {
+    display: block;
+    width: 100%;
+  }
+
+  #contenido_general .contenedor-informacion .icono,
+  #contenido_general .contenedor-informacion .contenido {
+    display: block;
+    width: 100%;
+    height: auto;
+    padding: 10px;
+  }
+
+  .content-dashboard {
+    padding: 15px;
+  }
+
+  .titulo-principal {
+    font-size: 18px;
+  }
+
+  .contenedor-informacion .icono {
+    width: 70px;
+    height: 70px;
+  }
+
+  .maletas-bx {
+    padding: 40px 15px;
+  }
+
+  .maletas-bx form h2 {
+    font-size: 28px;
+  }
+
+  .table-bordered th,
+  .content-table .table th,
+  .content-table .table td {
+    white-space: nowrap;
+  }
+
+  .bootstrap-datepicker,
+  .datepicker {
+    max-width: 100vw;
+  }
+}
+
+@media screen and (max-width: 575.98px) {
+  /* El footer y la caja van en el flujo normal: al abrir el teclado o crecer el
+     contenido, el footer queda al final y no a mitad de pantalla */
+  .login-fondo {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+
+  .login-caja {
+    position: relative;
+    width: calc(100% - 30px);
+    left: auto;
+    margin: 30px 15px;
+    top: auto;
+  }
+
+  .login-derechos {
+    position: static;
+    margin-top: auto;
+  }
+
+  .login-caja h1 {
+    font-size: 22px;
+  }
+
+  .login-caja .login-content {
+    padding: 20px 20px 30px;
+  }
+
+  .login-logo img {
+    width: 180px;
+  }
+
+  .login-derechos {
+    font-size: 12px;
+  }
+
+  header .infousuario span {
+    font-size: 12px;
+  }
+}
+
+/* Registro y reclamo por lotes */
+/* La ilustracion conserva su proporcion (la columna es flex y la estiraba) */
+.maletas-bx img.lote-ilustracion{
+  width: 100%;
+  max-width: 260px;
+  min-width: 0;
+  height: auto;
+  margin-bottom: 0;
+  object-fit: contain;
+}
+.maletas-bx .lote-tipo{
+  display: inline-block;
+  margin-top: 6px;
+  padding: 4px 12px;
+  border-radius: 5px;
+  background-color: var(--black);
+  color: var(--yellow);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+/* Avisos: al escanear (#lote-aviso) y resumen al terminar el envio (.lote-resumen) */
+.maletas-bx .lote-aviso:empty{
+  display: none;
+}
+.maletas-bx .lote-aviso,
+.maletas-bx .lote-resumen{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  padding: 10px 14px;
+  border-radius: 5px;
+  border-left: 4px solid transparent;
+  font-size: 15px;
+  line-height: 1.3;
+}
+.maletas-bx .lote-aviso i,
+.maletas-bx .lote-resumen i{
+  flex-shrink: 0;
+  font-size: 1.15rem;
+}
+.maletas-bx .lote-aviso.aviso-ok,
+.maletas-bx .lote-resumen.aviso-ok{
+  /* border-left-color: #198754; */
+  background-color: #e6f4ec;
+  color: #0f5132;
+}
+.maletas-bx .lote-aviso.aviso-error,
+.maletas-bx .lote-resumen.aviso-error{
+  /* border-left-color: #dc3545; */
+  background-color: #fbe9eb;
+  color: #842029;
+}
+.maletas-bx .lote-resumen{
+  margin-top: 0;
+}
+
+/* Barra de filtros de vuelos */
+.maletas-bx .lote-toolbar{
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 20px;
+  padding: 12px 15px;
+  border-radius: 10px;
+  background-color: var(--white);
+}
+.maletas-bx .lote-toolbar-titulo{
+  font-weight: 600;
+  color: var(--black);
+}
+.maletas-bx .lote-segmento{
+  display: inline-flex;
+  border-radius: 5px;
+  overflow: hidden;
+  border: 1px solid var(--black);
+}
+.maletas-bx .lote-segmento input{
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.maletas-bx .lote-segmento label{
+  padding: 6px 14px;
+  font-size: 14px;
+  cursor: pointer;
+  background-color: var(--white);
+  color: var(--black);
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.maletas-bx .lote-segmento input:checked + label{
+  background-color: var(--black);
+  color: var(--yellow);
+}
+.maletas-bx .lote-segmento input:focus-visible + label{
+  outline: 2px solid var(--yellow);
+  outline-offset: -2px;
+}
+
+/* Los inputs del formulario tienen height: 50px; el switch y las casillas no */
+.maletas-bx form input[type="checkbox"]{
+  height: auto;
+  padding: 0;
+}
+.maletas-bx .lote-switch{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  font-size: 14px;
+  color: var(--black);
+}
+.maletas-bx .lote-switch .form-check-input{
+  width: 2.4em;
+  height: 1.3em;
+  margin: 0;
+  float: none;
+  cursor: pointer;
+  border-color: #9b9a9a;
+}
+.maletas-bx .lote-switch .form-check-input:checked{
+  background-color: var(--black);
+  border-color: var(--black);
+}
+.maletas-bx .lote-switch .form-check-input:focus{
+  box-shadow: 0 0 0 3px rgba(255, 211, 68, 0.5);
+}
+.maletas-bx .lote-switch label{
+  cursor: pointer;
+}
+.maletas-bx .lote-boton{
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border: none;
+  border-radius: 5px;
+  background-color: var(--black);
+  color: var(--yellow);
+  font-size: 14px;
+  cursor: pointer;
+}
+.maletas-bx .lote-boton:disabled{
+  background-color: #ccc;
+  color: #fff;
+  cursor: not-allowed;
+}
+.maletas-bx .lote-toolbar .lote-boton{
+  margin-left: auto;
+}
+
+/* Lista del lote */
+.maletas-bx .lote-lista{
+  border-radius: 10px;
+  background-color: var(--white);
+  max-height: 50vh;
+  overflow-y: auto;
+}
+.maletas-bx .lote-vacio{
+  padding: 28px 15px;
+  text-align: center;
+  color: #9b9a9a;
+}
+.maletas-bx .lote-vacio i{
+  display: block;
+  margin-bottom: 6px;
+  font-size: 1.6rem;
+}
+.maletas-bx .lote-item{
+  padding: 12px 15px;
+  border-bottom: 1px solid #e3e3e3;
+  border-left: 4px solid transparent;
+}
+.maletas-bx .lote-item:last-child{
+  border-bottom: 0;
+}
+.maletas-bx .lote-item-error{
+  background-color: #fdf0f1;
+  border-left-color: #dc3545;
+}
+.maletas-bx .lote-item-ok{
+  background-color: #eef8f2;
+  border-left-color: #198754;
+}
+.maletas-bx .lote-item-top{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.maletas-bx .lote-item-top .form-check-input{
+  width: 1.2em;
+  height: 1.2em;
+  margin: 0;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+.maletas-bx .lote-item-top .form-check-input:checked{
+  background-color: var(--black);
+  border-color: var(--black);
+}
+.maletas-bx .lote-info{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+@media screen and (max-width: 575.98px){
+  .maletas-bx .lote-info{
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+  }
+}
+.maletas-bx .lote-codigo{
+  font-size: 1.1rem;
+  color: var(--black);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.5px;
+}
+.maletas-bx .lote-aerolinea{
+  min-width: 0;
+  color: #6e6e6e;
+  font-size: 14px;
+}
+.maletas-bx .lote-estado{
+  font-size: 1.1rem;
+  font-weight: bold;
+}
+.maletas-bx .lote-quitar{
+  margin-left: auto;
+  padding: 2px 8px;
+  border: none;
+  background: none;
+  color: #9b9a9a;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+.maletas-bx .lote-quitar:hover{
+  color: #dc3545;
+}
+.maletas-bx .lote-item-campos{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+  align-items: center;
+}
+.maletas-bx .lote-item-campos.lote-detalle{
+  gap: 6px 16px;
+  color: #6e6e6e;
+  font-size: 14px;
+}
+.maletas-bx form .lote-item-campos select{
+  width: auto;
+  max-width: 100%;
+  height: 36px;
+  padding: 4px 32px 4px 10px;
+  font-size: 14px;
+}
+.maletas-bx .lote-vuelo{
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  max-width: 100%;
+  padding: 4px 12px;
+  border-radius: 5px;
+  border: 1px solid var(--black);
+  background-color: var(--white);
+  color: var(--black);
+  font-size: 14px;
+  text-align: left;
+}
+.maletas-bx .lote-vuelo.sin-vuelo{
+  border-color: var(--yellow);
+  background-color: var(--yellow);
+}
+.maletas-bx .lote-mensaje{
+  margin-top: 6px;
+  color: #dc3545;
+  font-size: 13px;
+}
+.maletas-bx .lote-urgencia-alta,
+.maletas-bx .lote-urgencia-salio{
+  color: #dc3545;
+  font-weight: bold;
+}
+.maletas-bx .lote-urgencia-media{
+  color: #b58100;
+  font-weight: bold;
+}
+
+/* Acciones */
+.maletas-bx .lote-acciones{
+  display: flex;
+  gap: 10px;
+}
+.maletas-bx form .lote-limpiar{
+  flex-shrink: 0;
+  height: 50px;
+  padding: 0 18px;
+  border: 1px solid var(--black);
+  border-radius: 5px;
+  background-color: transparent;
+  color: var(--black);
+  white-space: nowrap;
+}
+.maletas-bx form .lote-limpiar:disabled{
+  border-color: #bbb;
+  color: #bbb;
+}
+.maletas-bx form .lote-acciones button.registrar{
+  flex: 1;
+  margin-top: 0;
+}
+.maletas-bx form .lote-acciones button.registrar:not(:disabled){
+  color: var(--yellow);
+}
+
+/* Modal de vuelos */
+.vuelo-modal .modal-content{
+  border: none;
+  border-radius: 15px;
+  overflow: hidden;
+  font-family: 'Exo 2';
+}
+.vuelo-modal .modal-content *:not(i){
+  font-family: 'Exo 2';
+}
+.vuelo-modal .modal-header{
+  align-items: flex-start;
+  padding: 18px 20px;
+  border-bottom: 3px solid var(--yellow);
+  background-color: var(--black);
+  color: var(--yellow);
+}
+.vuelo-modal .modal-title{
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+.vuelo-modal .modal-title i{
+  margin-right: 6px;
+}
+.vuelo-modal .vuelo-para{
+  margin-top: 4px;
+  color: var(--white);
+  font-size: 14px;
+}
+.vuelo-modal .vuelo-buscador{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  background-color: #e3e3e3;
+}
+.vuelo-modal .vuelo-buscador i{
+  color: #6e6e6e;
+}
+.vuelo-modal .vuelo-buscador input{
+  flex: 1;
+  min-width: 0;
+  height: 44px;
+  padding: 0 14px;
+  border: 1px solid #cfcfcf;
+  border-radius: 5px;
+  background-color: var(--white);
+}
+.vuelo-modal .vuelo-buscador input:focus{
+  outline: none;
+  border-color: var(--black);
+  box-shadow: 0 0 0 3px rgba(255, 211, 68, 0.5);
+}
+.vuelo-modal .modal-body{
+  padding: 0;
+  background-color: #f4f4f4;
+}
+.vuelo-lista{
+  display: flex;
+  flex-direction: column;
+}
+.vuelo-lista .vuelo-opcion{
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  padding: 12px 20px;
+  border: none;
+  border-bottom: 1px solid #e3e3e3;
+  border-left: 4px solid transparent;
+  background-color: var(--white);
+  color: var(--black);
+  text-align: left;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+.vuelo-lista .vuelo-opcion:hover,
+.vuelo-lista .vuelo-opcion:focus-visible{
+  outline: none;
+  border-left-color: var(--yellow);
+  background-color: #fff9e3;
+}
+.vuelo-lista .vuelo-opcion.activo{
+  border-left-color: var(--black);
+  background-color: #fff3c4;
+}
+.vuelo-lista .vuelo-hora{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  width: 78px;
+  padding: 6px 0;
+  border-radius: 5px;
+  background-color: var(--black);
+  color: var(--yellow);
+}
+.vuelo-lista .vuelo-hora strong{
+  font-size: 1.15rem;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.vuelo-lista .vuelo-programada{
+  color: #bdbdbd;
+  font-size: 11px;
+  text-decoration: line-through;
+}
+.vuelo-lista .vuelo-info{
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+.vuelo-lista .vuelo-numero{
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+.vuelo-lista .vuelo-destino{
+  color: #444;
+}
+.vuelo-lista .vuelo-etiquetas{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+  margin-top: 4px;
+}
+.vuelo-lista .vuelo-etiquetas span{
+  padding: 1px 8px;
+  border-radius: 10px;
+  background-color: #ececec;
+  color: #555;
+  font-size: 12px;
+}
+.vuelo-lista .vuelo-flecha{
+  flex-shrink: 0;
+  color: #9b9a9a;
+}
+.vuelo-lista .vuelo-opcion.activo .vuelo-flecha{
+  color: var(--black);
+}
+.vuelo-lista .vuelo-estado{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 36px 20px;
+  color: #6e6e6e;
+  text-align: center;
+}
+.vuelo-lista .vuelo-estado i{
+  margin-bottom: 6px;
+  font-size: 1.8rem;
+  color: #9b9a9a;
+}
+.vuelo-lista .vuelo-estado strong{
+  color: var(--black);
+}
+.vuelo-modal .vuelo-manual{
+  padding: 14px 20px 18px;
+  border-top: 1px solid #d6d6d6;
+  background-color: #e3e3e3;
+}
+.vuelo-modal .vuelo-manual label{
+  display: block;
+  margin-bottom: 6px;
+  color: var(--black);
+}
+.vuelo-modal .vuelo-manual-campos{
+  display: flex;
+  gap: 8px;
+}
+.vuelo-modal .vuelo-manual-campos input{
+  flex: 1;
+  min-width: 0;
+  height: 44px;
+  padding: 0 14px;
+  border: 1px solid #cfcfcf;
+  border-radius: 5px;
+}
+.vuelo-modal .vuelo-manual-campos input:not(:placeholder-shown){
+  text-transform: uppercase;
+}
+.vuelo-modal .vuelo-manual-campos input:focus{
+  outline: none;
+  border-color: var(--black);
+  box-shadow: 0 0 0 3px rgba(255, 211, 68, 0.5);
+}
+.vuelo-modal .vuelo-manual-campos button{
+  flex-shrink: 0;
+  height: 44px;
+  padding: 0 18px;
+  border: none;
+  border-radius: 5px;
+  background-color: var(--black);
+  color: var(--yellow);
+  font-weight: 600;
+}
+.vuelo-modal .vuelo-manual small{
+  display: block;
+  margin-top: 6px;
+  color: #6e6e6e;
+}
+@media screen and (max-width: 576px){
+  .maletas-bx .lote-toolbar .lote-boton{
+    margin-left: 0;
+    width: 100%;
+    justify-content: center;
+  }
+}
+.maletas-bx .lote-resumen-wrap:not(:empty){
+  margin-top: 1rem;
+}
+
+/* Pantalla de carga del envio por lotes */
+.lote-cargando{
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background-color: rgba(0, 0, 0, 0.75);
+}
+.lote-cargando:not(.mostrar){
+  display: none;
+}
+.lote-cargando.mostrar{
+  animation: lote-aparecer 0.2s ease-out;
+}
+@keyframes lote-aparecer{
+  from{
+    opacity: 0;
+  }
+}
+body.lote-cargando-abierto{
+  overflow: hidden;
+}
+.lote-cargando-caja{
+  width: 100%;
+  max-width: 380px;
+  padding: 30px 25px;
+  border-radius: 15px;
+  background-color: var(--black);
+  color: var(--white);
+  text-align: center;
+  font-family: 'Exo 2';
+}
+.lote-cargando-caja *{
+  font-family: 'Exo 2';
+}
+.lote-cargando-spinner{
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 18px;
+  border: 5px solid rgba(255, 211, 68, 0.25);
+  border-top-color: var(--yellow);
+  border-radius: 50%;
+  animation: lote-girar 0.9s linear infinite;
+}
+@keyframes lote-girar{
+  to{
+    transform: rotate(360deg);
+  }
+}
+.lote-cargando-caja h3{
+  margin: 0 0 6px;
+  color: var(--yellow);
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+.lote-cargando-progreso{
+  margin: 0 0 12px;
+  font-size: 1.05rem;
+}
+.lote-cargando-barra{
+  height: 8px;
+  border-radius: 4px;
+  background-color: #333;
+  overflow: hidden;
+}
+.lote-cargando-barra span{
+  display: block;
+  width: 0;
+  height: 100%;
+  border-radius: 4px;
+  background-color: var(--yellow);
+  transition: width 0.3s ease;
+}
+.lote-cargando-codigo{
+  min-height: 20px;
+  margin: 10px 0 0;
+  color: #bdbdbd;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+.lote-cargando-detalle{
+  margin: 14px 0 0;
+  color: #9b9a9a;
+  font-size: 13px;
+  line-height: 1.4;
+}
+@media (prefers-reduced-motion: reduce){
+  .lote-cargando-spinner{
+    animation-duration: 2.5s;
+  }
+  .lote-cargando.mostrar{
+    animation: none;
+  }
+  .lote-cargando-barra span{
+    transition: none;
+  }
+}
+
+/* Resumen de alertas en el panel de informacion */
+.div-dashboard.alertas-resumen{
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  min-height: 0;
+  padding: 18px 25px;
+}
+.alertas-resumen-icono{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background-color: var(--yellow);
+  color: var(--black);
+  font-size: 1.4rem;
+}
+.alertas-resumen-texto{
+  flex: 1;
+  min-width: 0;
+}
+.alertas-resumen-texto h2{
+  margin: 0 0 4px;
+  padding: 0;
+  min-height: 0;
+  border: 0;
+  font-size: 1.25rem;
+  color: var(--black);
+}
+.alertas-resumen-texto p{
+  margin: 0;
+  color: #444;
+}
+.div-dashboard.alertas-resumen .btn{
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+@media screen and (max-width: 767.98px){
+  .div-dashboard.alertas-resumen{
+    flex-wrap: wrap;
+  }
+  .div-dashboard.alertas-resumen .btn{
+    width: 100%;
+  }
+}
+
+/* Modal de la camara: el video llena el espacio (antes tenia alto fijo y quedaban franjas negras) */
+.camara-modal .modal-content{
+  overflow: hidden;
+  border: none;
+  border-radius: 15px;
+  background-color: var(--black);
+}
+.camara-modal .modal-header{
+  border-bottom: 0;
+  background-color: var(--black);
+  color: var(--yellow);
+}
+.camara-modal .modal-body{
+  display: flex;
+  padding: 0;
+  background-color: var(--black);
+}
+.camara-modal .camara-visor{
+  position: relative;
+  width: 100%;
+  max-height: 70vh;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background-color: var(--black);
+}
+/* Video que crea Quagga dentro del visor */
+.camara-modal .camara-visor video{
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+/* Los recuadros de depuracion de Quagga no coinciden con el video recortado: se ocultan */
+.camara-modal .camara-visor canvas{
+  display: none;
+}
+.camara-modal .camara-visor.lectura-ok{
+  outline: 6px solid #198754;
+  outline-offset: -6px;
+}
+/* Guia para centrar el codigo: cuadrado, con solo las esquinas marcadas */
+.camara-guia{
+  --guia-color: var(--yellow);
+  --guia-grosor: 4px;
+  --guia-largo: 28px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  height: 72%;
+  aspect-ratio: 1 / 1;
+  transform: translate(-50%, -50%);
+  background:
+    linear-gradient(var(--guia-color), var(--guia-color)) top left / var(--guia-largo) var(--guia-grosor),
+    linear-gradient(var(--guia-color), var(--guia-color)) top left / var(--guia-grosor) var(--guia-largo),
+    linear-gradient(var(--guia-color), var(--guia-color)) top right / var(--guia-largo) var(--guia-grosor),
+    linear-gradient(var(--guia-color), var(--guia-color)) top right / var(--guia-grosor) var(--guia-largo),
+    linear-gradient(var(--guia-color), var(--guia-color)) bottom left / var(--guia-largo) var(--guia-grosor),
+    linear-gradient(var(--guia-color), var(--guia-color)) bottom left / var(--guia-grosor) var(--guia-largo),
+    linear-gradient(var(--guia-color), var(--guia-color)) bottom right / var(--guia-largo) var(--guia-grosor),
+    linear-gradient(var(--guia-color), var(--guia-color)) bottom right / var(--guia-grosor) var(--guia-largo);
+  background-repeat: no-repeat;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+}
+.camara-guia span{
+  position: absolute;
+  top: -38px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 12px;
+  border-radius: 999px;
+  background-color: rgba(0, 0, 0, 0.7);
+  color: var(--yellow);
+  font-size: 14px;
+  white-space: nowrap;
+}
+@media screen and (max-width: 575.98px){
+  .camara-modal .modal-content{
+    border-radius: 0;
+  }
+  .camara-modal .modal-body{
+    flex: 1;
+    min-height: 0;
+  }
+  .camara-modal .camara-visor{
+    height: 100%;
+    max-height: none;
+    aspect-ratio: auto;
+  }
+  .camara-guia{
+    width: 70%;
+    height: auto;
+  }
+}
+
+/* Botones de acciones del lote en pantallas pequenas */
+@media screen and (max-width: 575.98px){
+  .maletas-bx form .lote-acciones button.registrar{
+    height: 44px;
+    font-size: 0.95rem;
+  }
+  .maletas-bx form .lote-limpiar{
+    height: 44px;
+    padding: 0 12px;
+    font-size: 0.85rem;
+  }
+}
+
+/* Resultado de cada lectura dentro del modal de la camara */
+.camara-modal .modal-body{
+  position: relative;
+}
+.camara-estado{
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  display: none;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-left: 4px solid transparent;
+  border-radius: 8px;
+  font-size: 15px;
+  line-height: 1.3;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+}
+.camara-estado.visible{
+  display: flex;
+}
+.camara-estado i{
+  flex-shrink: 0;
+  font-size: 1.3rem;
+}
+.camara-estado.aviso-ok{
+  border-left-color: #198754;
+  background-color: #e6f4ec;
+  color: #0f5132;
+}
+.camara-estado.aviso-error{
+  border-left-color: #dc3545;
+  background-color: #fbe9eb;
+  color: #842029;
+}
+.camara-modal .camara-footer{
+  justify-content: stretch;
+  padding: 10px 12px;
+  border-top: 0;
+  background-color: var(--black);
+}
+.camara-modal .camara-listo{
+  flex: 1;
+  height: 46px;
+  border: none;
+  border-radius: 5px;
+  background-color: var(--yellow);
+  color: var(--black);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+/* Fila de registro como pasos: conexion (No/Si), aerolinea de conexion y vuelo */
+.maletas-bx .lote-pasos{
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px 16px;
+  margin-top: 10px;
+}
+.maletas-bx .lote-paso{
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.maletas-bx .lote-paso-titulo{
+  margin: 0;
+  color: #6e6e6e;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+.maletas-bx .lote-sino{
+  display: inline-flex;
+  align-self: flex-start;
+  overflow: hidden;
+  border: 1px solid var(--black);
+  border-radius: 5px;
+}
+.maletas-bx .lote-sino button{
+  min-width: 64px;
+  height: 40px;
+  padding: 0 16px;
+  border: 0;
+  background-color: var(--white);
+  color: var(--black);
+  font-size: 15px;
+  font-weight: 600;
+}
+.maletas-bx .lote-sino button + button{
+  border-left: 1px solid var(--black);
+}
+.maletas-bx .lote-sino button.activo{
+  background-color: var(--black);
+  color: var(--yellow);
+}
+.maletas-bx form .lote-paso select{
+  width: auto;
+  min-width: 220px;
+  height: 40px;
+  padding: 4px 32px 4px 10px;
+  font-size: 15px;
+}
+.maletas-bx form .lote-paso select.pendiente{
+  border-color: var(--yellow);
+  background-color: #fff9e3;
+}
+.maletas-bx .lote-paso-vuelo{
+  flex: 1 1 260px;
+}
+.maletas-bx .lote-pasos .lote-vuelo{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 40px;
+  padding: 6px 12px;
+  border: 1px solid var(--black);
+  border-radius: 5px;
+  background-color: var(--white);
+  color: var(--black);
+  text-align: left;
+}
+.maletas-bx .lote-pasos .lote-vuelo i{
+  flex-shrink: 0;
+}
+.maletas-bx .lote-vuelo-texto{
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.25;
+}
+.maletas-bx .lote-vuelo-texto strong{
+  font-size: 15px;
+}
+.maletas-bx .lote-vuelo-texto small{
+  overflow: hidden;
+  color: #555;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.maletas-bx .lote-vuelo-cambiar{
+  flex-shrink: 0;
+  color: #555;
+  font-size: 13px;
+  text-decoration: underline;
+}
+.maletas-bx .lote-pasos .lote-vuelo.sin-vuelo{
+  border-color: var(--yellow);
+  background-color: var(--yellow);
+}
+.maletas-bx .lote-pasos .lote-vuelo:disabled{
+  border-color: #ddd;
+  background-color: #eee;
+  color: #888;
+  cursor: not-allowed;
+}
+
+/* Celular: cada paso a todo el ancho y areas de toque grandes */
+@media screen and (max-width: 575.98px){
+  .maletas-bx .lote-item{
+    padding: 14px 12px;
+  }
+  .maletas-bx .lote-item-top{
+    gap: 10px;
+    flex-wrap: nowrap;
+    align-items: flex-start;
+  }
+  .maletas-bx .lote-item-top .lote-codigo,
+  .maletas-bx .lote-item-top .form-check-input,
+  .maletas-bx .lote-item-top .lote-estado{
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  /* El nombre largo de la aerolinea se parte en varias lineas sin empujar la X */
+  .maletas-bx .lote-item-top .lote-aerolinea{
+    flex: 1 1 auto;
+    padding-top: 4px;
+  }
+  .maletas-bx .lote-item-top .lote-quitar{
+    flex-shrink: 0;
+    margin-top: -8px;
+  }
+  .maletas-bx .lote-item-top .form-check-input{
+    width: 1.4em;
+    height: 1.4em;
+  }
+  .maletas-bx .lote-codigo{
+    font-size: 1.15rem;
+  }
+  .maletas-bx .lote-quitar{
+    width: 40px;
+    height: 40px;
+    margin-right: -8px;
+    font-size: 1.25rem;
+  }
+  .maletas-bx .lote-paso{
+    flex: 1 1 100%;
+  }
+  .maletas-bx .lote-sino{
+    display: flex;
+    align-self: stretch;
+    width: 100%;
+  }
+  .maletas-bx .lote-sino button{
+    flex: 1;
+    height: 48px;
+    font-size: 16px;
+  }
+  .maletas-bx form .lote-paso select{
+    width: 100%;
+    min-width: 0;
+    height: 48px;
+    font-size: 16px;
+  }
+  .maletas-bx .lote-pasos .lote-vuelo{
+    min-height: 56px;
+    padding: 8px 14px;
+  }
+  .maletas-bx .lote-vuelo-texto strong{
+    font-size: 16px;
+  }
+  .maletas-bx .lote-vuelo-texto small{
+    white-space: normal;
+  }
+  /* Barra de vuelos */
+  .maletas-bx .lote-toolbar{
+    gap: 12px;
+  }
+  .maletas-bx .lote-toolbar-titulo{
+    flex: 1 1 100%;
+  }
+  .maletas-bx .lote-segmento{
+    display: flex;
+    width: 100%;
+  }
+  .maletas-bx .lote-segmento label{
+    flex: 1;
+    padding: 10px 8px;
+    text-align: center;
+  }
+  .maletas-bx .lote-toolbar .lote-boton{
+    min-height: 44px;
+  }
+  /* Detalle de vuelo en reclamar */
+  .maletas-bx .lote-item-campos.lote-detalle{
+    gap: 4px 14px;
+  }
+}
+
+/* Celular: la lista crece con la pagina (sin scroll dentro de otro scroll) y las acciones quedan fijas abajo */
+@media screen and (max-width: 575.98px){
+  .maletas-bx .lote-lista{
+    max-height: none;
+    overflow: visible;
+  }
+  .maletas-bx .lote-acciones{
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
+    margin-top: 0 !important;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    background-color: #e3e3e3;
+  }
+}
+@media screen and (max-width: 575.98px){
+  /* overflow-x: hidden convierte estos contenedores en scroll y rompe el sticky; clip recorta igual sin hacerlo */
+  body:has(.maletas-bx .lote-lista),
+  body:has(.maletas-bx .lote-lista) #contenido_general{
+    overflow-x: clip;
+    overflow-y: visible;
+  }
+}
+
+/* El indicador de estado va pegado al codigo de la maleta; el boton de quitar queda solo a la derecha */
+.maletas-bx .lote-item-top .form-check-input{
+  order: -1;
+}
+.maletas-bx .lote-item-top .lote-estado{
+  order: 1;
+}
+.maletas-bx .lote-item-top .lote-aerolinea{
+  order: 2;
+}
+.maletas-bx .lote-item-top .lote-quitar{
+  order: 3;
+}

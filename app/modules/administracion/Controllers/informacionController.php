@@ -51,6 +51,10 @@ class Administracion_informacionController extends Administracion_mainController
 	 */
 	public function init()
 	{
+		// La pantalla de alertas tiene su propio boton en el menu lateral
+		if (in_array($this->getRoutes()->getAction(), array('alertas', 'alertasguardar'))) {
+			$this->botonpanel = 9;
+		}
 		$this->mainModel = new Administracion_Model_DbTable_Informacion();
 		$this->namefilter = "parametersfilterinformacion";
 		$this->route = "/administracion/informacion";
@@ -64,6 +68,62 @@ class Administracion_informacionController extends Administracion_mainController
 		parent::init();
 	}
 
+
+	/**
+	 * Solo el administrador (nivel 1) configura las alertas.
+	 */
+	private function soloAdmin()
+	{
+		if ((string) Session::getInstance()->get('kt_login_level') !== '1') {
+			header('Location: /administracion/maletas/');
+			exit;
+		}
+	}
+
+	/**
+	 * Configuracion de las alertas de salida proxima: minutos de aviso y estado de la sincronizacion de vuelos.
+	 *
+	 * @return void.
+	 */
+	public function alertasAction()
+	{
+		$this->soloAdmin();
+		$this->getLayout()->setTitle("Alertas de salida");
+		$this->_view->titlesection = "Alertas de salida";
+		$this->_csrf->generateCode("informacion_alertas");
+		$this->_view->csrf = Session::getInstance()->get('csrf')["informacion_alertas"];
+		$info = $this->mainModel->getById(1);
+		$this->_view->minutos = $info->info_pagina_alerta_minutos ? (int) $info->info_pagina_alerta_minutos : 60;
+		$this->_view->guardado = $this->_getSanitizedParam("ok") == '1';
+		$this->_view->error = $this->_getSanitizedParam("error") == '1';
+		$this->_view->sync = (new Administracion_Model_DbTable_Vuelossync())->getById(1);
+	}
+
+	/**
+	 * Guarda los minutos de aviso (solo ese campo; el formulario viejo de informacion reescribe todos los datos de la pagina).
+	 *
+	 * @return void.
+	 */
+	public function alertasguardarAction()
+	{
+		$this->setLayout('blanco');
+		$this->soloAdmin();
+		$csrf = $this->_getSanitizedParam("csrf");
+		$minutos = (int) $this->_getSanitizedParam("info_pagina_alerta_minutos");
+		$csrfSesion = Session::getInstance()->get('csrf')["informacion_alertas"];
+		if ($csrfSesion && $csrfSesion == $csrf && $minutos >= 1 && $minutos <= 600) {
+			$this->mainModel->editField(1, 'info_pagina_alerta_minutos', $minutos);
+			$logModel = new Administracion_Model_DbTable_Log();
+			$logModel->insert(array(
+				'log_log' => 'Minutos de alerta de salida: ' . $minutos,
+				'log_tipo' => 'EDITAR ALERTAS',
+			));
+			header('Location: ' . $this->route . '/alertas?ok=1');
+		} else {
+			header('Location: ' . $this->route . '/alertas?error=1');
+		}
+		exit;
+	}
 
 	/**
 	 *  muestra el formulario para realizar la edicion de la informacion
@@ -207,6 +267,7 @@ class Administracion_informacionController extends Administracion_mainController
 		$data['info_pagina_correo_remitente'] = $this->_getSanitizedParamHtml("info_pagina_correo_remitente");
 		$data['info_pagina_nombre_remitente'] = $this->_getSanitizedParamHtml("info_pagina_nombre_remitente");
 		$data['info_pagina_correo_oculto'] = $this->_getSanitizedParamHtml("info_pagina_correo_oculto");
+		$data['info_pagina_alerta_minutos'] = $this->_getSanitizedParam("info_pagina_alerta_minutos");
 
 		$data['info_pagina_titulo_legal'] = $this->_getSanitizedParamHtml("info_pagina_titulo_legal");
 		$data['info_pagina_descripcion_legal'] = $this->_getSanitizedParamHtml("info_pagina_descripcion_legal");

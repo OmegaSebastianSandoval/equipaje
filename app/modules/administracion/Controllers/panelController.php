@@ -20,6 +20,9 @@ class Administracion_panelController extends Administracion_mainController
 			$this->pages = 20;
 		}
 		parent::init();
+		if (!Administracion_Model_Acceso::canPanel()) {
+			Administracion_Model_Acceso::redirectHome();
+		}
 	}
 	public function indexAction()
 	{

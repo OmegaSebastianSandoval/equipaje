@@ -36,7 +36,8 @@ class Administracion_Model_DbTable_Maletas extends Db_Table
     $maleta_aerolinea_conexion = $data['maleta_aerolinea_conexion'];
     $maleta_over_tipo = Session::getInstance()->get('over') ? Session::getInstance()->get('over') : '';
     $maleta_over_lugar = Session::getInstance()->get('over') ? Session::getInstance()->get('step') : '';
-    $query = "INSERT INTO maletas( maleta_codigo, maleta_aerolinea, maleta_prop, maleta_fl, maleta_estado, maleta_fingreso, maleta_fsalida, maleta_hingreso, maleta_hsalida, maleta_conexion, maleta_aerolinea_conexion, maleta_over_tipo, maleta_over_lugar) VALUES ( '$maleta_codigo', '$maleta_aerolinea', '$maleta_prop', '$maleta_fl', '$maleta_estado', '$maleta_fingreso', '$maleta_fsalida', '$maleta_hingreso', '$maleta_hsalida', '$maleta_conexion', '$maleta_aerolinea_conexion', '$maleta_over_tipo', '$maleta_over_lugar')";
+    $vuelo = $this->vueloSql($data);
+    $query = "INSERT INTO maletas( maleta_codigo, maleta_aerolinea, maleta_prop, maleta_fl, maleta_estado, maleta_fingreso, maleta_fsalida, maleta_hingreso, maleta_hsalida, maleta_conexion, maleta_aerolinea_conexion, maleta_over_tipo, maleta_over_lugar, maleta_vuelo_id, maleta_vuelo_numero, maleta_vuelo_salida, maleta_vuelo_destino, maleta_vuelo_manual, maleta_minutos_disponibles) VALUES ( '$maleta_codigo', '$maleta_aerolinea', '$maleta_prop', '$maleta_fl', '$maleta_estado', '$maleta_fingreso', '$maleta_fsalida', '$maleta_hingreso', '$maleta_hsalida', '$maleta_conexion', '$maleta_aerolinea_conexion', '$maleta_over_tipo', '$maleta_over_lugar', {$vuelo['maleta_vuelo_id']}, {$vuelo['maleta_vuelo_numero']}, {$vuelo['maleta_vuelo_salida']}, {$vuelo['maleta_vuelo_destino']}, {$vuelo['maleta_vuelo_manual']}, {$vuelo['maleta_minutos_disponibles']})";
     $res = $this->_conn->query($query);
     return mysqli_insert_id($this->_conn->getConnection());
   }
@@ -63,8 +64,39 @@ class Administracion_Model_DbTable_Maletas extends Db_Table
     $maleta_aerolinea_conexion = $data['maleta_aerolinea_conexion'];
     $maleta_over_tipo = Session::getInstance()->get('over') ? Session::getInstance()->get('over') : '';
     $maleta_over_lugar = Session::getInstance()->get('over') ? Session::getInstance()->get('step') : '';
-    $query = "UPDATE maletas SET  maleta_codigo = '$maleta_codigo', maleta_aerolinea = '$maleta_aerolinea', maleta_prop = '$maleta_prop', maleta_fl = '$maleta_fl', maleta_estado = '$maleta_estado', maleta_fingreso = '$maleta_fingreso', maleta_fsalida = '$maleta_fsalida', maleta_hingreso = '$maleta_hingreso', maleta_hsalida = '$maleta_hsalida', maleta_conexion = '$maleta_conexion', maleta_aerolinea_conexion = '$maleta_aerolinea_conexion', maleta_over_tipo = '$maleta_over_tipo', maleta_over_lugar = '$maleta_over_lugar' WHERE maleta_id = '" . $id . "'";
+    $query = "UPDATE maletas SET  maleta_codigo = '$maleta_codigo', maleta_aerolinea = '$maleta_aerolinea', maleta_prop = '$maleta_prop', maleta_fl = '$maleta_fl', maleta_estado = '$maleta_estado', maleta_fingreso = '$maleta_fingreso', maleta_fsalida = '$maleta_fsalida', maleta_hingreso = '$maleta_hingreso', maleta_hsalida = '$maleta_hsalida', maleta_conexion = '$maleta_conexion', maleta_aerolinea_conexion = '$maleta_aerolinea_conexion', maleta_over_tipo = '$maleta_over_tipo', maleta_over_lugar = '$maleta_over_lugar'";
+    // Los datos del vuelo solo se cambian si vienen (el formulario de edicion los muestra en solo lectura)
+    if (array_key_exists('maleta_vuelo_numero', $data)) {
+      foreach ($this->vueloSql($data) as $campo => $valor) {
+        $query .= ", $campo = $valor";
+      }
+    }
+    $query .= " WHERE maleta_id = '" . $id . "'";
     $res = $this->_conn->query($query);
+  }
+
+  /**
+   * Valores SQL (ya escapados, con NULL) de las columnas del vuelo asociado a la maleta.
+   * @param  array $data informacion de la maleta
+   * @return array columna => valor SQL
+   */
+  private function vueloSql($data)
+  {
+    $db = $this->_conn->getConnection();
+    $texto = function ($valor) use ($db) {
+      return ($valor === null || $valor === '') ? 'NULL' : "'" . mysqli_real_escape_string($db, $valor) . "'";
+    };
+    $entero = function ($valor) {
+      return ($valor === null || $valor === '') ? 'NULL' : "'" . (int) $valor . "'";
+    };
+    return [
+      'maleta_vuelo_id' => $entero($data['maleta_vuelo_id'] ?? null),
+      'maleta_vuelo_numero' => $texto($data['maleta_vuelo_numero'] ?? null),
+      'maleta_vuelo_salida' => $texto($data['maleta_vuelo_salida'] ?? null),
+      'maleta_vuelo_destino' => $texto($data['maleta_vuelo_destino'] ?? null),
+      'maleta_vuelo_manual' => "'" . (int) ($data['maleta_vuelo_manual'] ?? 0) . "'",
+      'maleta_minutos_disponibles' => $entero($data['maleta_minutos_disponibles'] ?? null),
+    ];
   }
 
   public function getList_maletas_aerolineas($filters = '', $order = '')

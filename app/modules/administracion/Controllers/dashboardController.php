@@ -16,6 +16,9 @@ class Administracion_dashboardController extends Administracion_mainController
 
   public function indexAction()
   {
+    if (!Administracion_Model_Acceso::canDashboard()) {
+      Administracion_Model_Acceso::redirectHome();
+    }
     $maletasModel = new Administracion_Model_DbTable_Maletas();
     $aerolineasModel = new Administracion_Model_DbTable_Aerolineas();
     $this->_view->grafica1 = $maletasModel->getList_maletas_aerolineas_grafica();
@@ -26,6 +29,9 @@ class Administracion_dashboardController extends Administracion_mainController
 
   public function overAction()
   {
+    if (!Administracion_Model_Acceso::canDashboardOver()) {
+      Administracion_Model_Acceso::redirectHome();
+    }
     $this->botonpanel = 8;
     $maletasModel = new Administracion_Model_DbTable_Maletas();
 

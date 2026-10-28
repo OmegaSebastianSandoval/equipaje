@@ -108,6 +108,16 @@
 					</label>
 					<div class="help-block with-errors"></div>
 				</div>
+				<?php if ($this->content->maleta_vuelo_numero) { ?>
+					<div class="col-12 form-group">
+						<label class="control-label">Vuelo (solo lectura)</label>
+						<input type="text" class="form-control" disabled
+							value="<?= ($this->content->maleta_vuelo_manual == 1 ? 'No listado: ' : '') . $this->content->maleta_vuelo_numero
+								. ($this->content->maleta_vuelo_destino ? ' · ' . $this->content->maleta_vuelo_destino : '')
+								. ($this->content->maleta_vuelo_salida ? ' · Salida ' . $this->content->maleta_vuelo_salida : '')
+								. ($this->content->maleta_minutos_disponibles !== null ? ' · Margen al registrar ' . Core_Model_Vuelos::formatoMinutos($this->content->maleta_minutos_disponibles) : ''); ?>">
+					</div>
+				<?php } ?>
 			</div>
 		</div>
 		<div class="botones-acciones">
