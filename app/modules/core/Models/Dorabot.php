@@ -61,8 +61,8 @@ class Core_Model_Dorabot
       return;
     }
 
-    if (APPLICATION_ENV == 'development') {
-      // En development todos los telefonos se redirigen a uno solo: se envia una vez por maleta y evento
+    if (Config_Config::getInstance()->getValue('notificaciones/redirigir')) {
+      // Con la redireccion activa todos los telefonos se redirigen a uno solo: se envia una vez por maleta y evento
       $clave = $evento . '|' . $codigoEquipaje . '|' . $overTipo;
       if (isset(self::$enviadosDev[$clave])) {
         return;

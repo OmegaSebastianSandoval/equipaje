@@ -56,7 +56,7 @@ class Core_Model_Mail
     public function sed()
     {
 
-        if (APPLICATION_ENV == 'development') {
+        if (Config_Config::getInstance()->getValue('notificaciones/redirigir')) {
             $this->mail->clearAddresses();
             $this->mail->clearCCs();
             $this->mail->clearBCCs();
