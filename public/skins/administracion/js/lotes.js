@@ -1317,7 +1317,7 @@ document.addEventListener("DOMContentLoaded", function () {
           '<p class="lote-cargando-codigo"></p>' +
           '<p class="lote-cargando-pausa" role="status" aria-live="assertive" hidden></p>' +
           '<p id="lote-cargando-detalle" class="lote-cargando-detalle">No cierres ni recargues esta página. Cada maleta tarda unos segundos porque se notifica a la aerolínea.</p>' +
-          '<button type="button" class="lote-cargando-detener">Detener</button>' +
+          '<button type="button" class="lote-cargando-detener"><i class="fa-solid fa-circle-stop" aria-hidden="true"></i><span>Detener envío</span></button>' +
           "</div></div>",
       );
       document.body.appendChild(c);
@@ -1331,7 +1331,7 @@ document.addEventListener("DOMContentLoaded", function () {
       : "Reclamando maletas";
     const boton = c.querySelector(".lote-cargando-detener");
     boton.disabled = false;
-    boton.textContent = "Detener";
+    boton.querySelector("span").textContent = "Detener envío";
     pausaCargando("");
     actualizarCargando(0, total, "");
     c.classList.add("mostrar");
@@ -1382,7 +1382,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const boton = document.querySelector(".lote-cargando-detener");
     if (boton) {
       boton.disabled = true;
-      boton.textContent = continuarPausa
+      boton.querySelector("span").textContent = continuarPausa
         ? "Deteniendo…"
         : "Deteniendo… termina la maleta actual";
     }

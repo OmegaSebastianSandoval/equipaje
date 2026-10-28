@@ -2720,7 +2720,8 @@ body.lote-cargando-abierto{
   text-align: center;
   font-family: 'Exo 2';
 }
-.lote-cargando-caja *{
+/* Sin tocar los <i>: si no, pierden la fuente de Font Awesome y el icono no se ve */
+.lote-cargando-caja *:not(i){
   font-family: 'Exo 2';
 }
 .lote-cargando-spinner{
@@ -2792,30 +2793,51 @@ body.lote-cargando-abierto{
   display: none;
 }
 .lote-cargando-detener{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   width: 100%;
-  min-height: 44px;
-  margin-top: 18px;
-  padding: 8px 14px;
-  border: 1px solid #5a5a5a;
+  min-height: 46px;
+  margin-top: 20px;
+  padding: 10px 16px;
+  border: none;
   border-radius: 8px;
-  background-color: transparent;
+  background-color: #dc3545;
   color: var(--white);
   font-size: 15px;
   font-weight: 600;
+  letter-spacing: 0.01em;
   cursor: pointer;
-  transition: border-color 0.15s ease, color 0.15s ease;
+  box-shadow: 0 4px 14px rgba(220, 53, 69, 0.35);
+  transition: background-color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
+}
+.lote-cargando-detener i{
+  font-size: 1.1em;
 }
 .lote-cargando-detener:hover:not(:disabled){
-  border-color: var(--yellow);
-  color: var(--yellow);
+  background-color: #bb2d3b;
+  box-shadow: 0 6px 18px rgba(220, 53, 69, 0.45);
+}
+.lote-cargando-detener:active:not(:disabled){
+  transform: scale(0.98);
 }
 .lote-cargando-detener:focus-visible{
-  outline: 2px solid var(--yellow);
-  outline-offset: 2px;
+  outline: 2px solid var(--white);
+  outline-offset: 3px;
 }
+/* Mientras termina la maleta en curso: rojo apagado y el icono gira */
 .lote-cargando-detener:disabled{
-  color: #9b9a9a;
+  background-color: #5c1f26;
+  color: #f1aeb5;
+  box-shadow: none;
   cursor: wait;
+}
+.lote-cargando-detener:disabled i{
+  animation: lote-girar 1.2s linear infinite;
+}
+.lote-cargando-detener:disabled i::before{
+  content: "\f110";
 }
 @media (prefers-reduced-motion: reduce){
   .lote-cargando-spinner{
@@ -3278,4 +3300,16 @@ body.lote-cargando-abierto{
 }
 .maletas-bx .lote-item-top .lote-quitar{
   order: 3;
+}
+
+/* El celular convierte en enlace los codigos (parecen telefonos) y las horas de salida (parecen fechas).
+   La etiqueta format-detection del layout lo desactiva; esto es el respaldo si el navegador la ignora. */
+.maletas-bx a[href^="tel:"],
+.maletas-bx a[x-apple-data-detectors],
+.lote-cargando a[href^="tel:"],
+.lote-cargando a[x-apple-data-detectors]{
+  color: inherit !important;
+  font: inherit !important;
+  text-decoration: none !important;
+  pointer-events: none;
 }

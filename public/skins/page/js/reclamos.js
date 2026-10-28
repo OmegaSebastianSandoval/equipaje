@@ -233,7 +233,7 @@ $(document).ready(function () {
     cola = cola.slice(0, MAX_LOTE);
     enviando = true;
     detener = false;
-    $("#reclamo-detener").prop("hidden", false).prop("disabled", false).text("Detener");
+    $("#reclamo-detener").prop("hidden", false).prop("disabled", false).find("span").text("Detener");
     render();
     let ok = 0;
     let fallidas = 0;
@@ -346,7 +346,7 @@ $(document).ready(function () {
   // Detiene el lote al terminar la maleta en curso (o de inmediato si esta en pausa)
   $("#reclamo-detener").on("click", function () {
     detener = true;
-    $(this).prop("disabled", true).text(continuarPausa ? "Deteniendo…" : "Deteniendo… termina la actual");
+    $(this).prop("disabled", true).find("span").text(continuarPausa ? "Deteniendo…" : "Deteniendo…");
     reanudar();
   });
 

@@ -53,7 +53,7 @@
           </div>
           <div class="col-12 d-flex gap-2 mt-3 reclamo-acciones">
             <button type="button" id="reclamo-limpiar" class="reclamo-limpiar" disabled>Limpiar</button>
-            <button type="button" id="reclamo-detener" class="reclamo-limpiar" hidden>Detener</button>
+            <button type="button" id="reclamo-detener" class="reclamo-detener" hidden><i class="fa-solid fa-circle-stop" aria-hidden="true"></i><span>Detener</span></button>
             <button type="button" id="reclamo-enviar" class="registrar" disabled>Reclamar</button>
           </div>
           <input type="hidden" id="reclamo-csrf" value="<?php echo $this->csrf_reclamos; ?>" />

@@ -561,6 +561,41 @@ header .header .logo {
 .maletas-bx form .reclamo-acciones button.reclamo-limpiar{
   flex-shrink: 0;
 }
+/* Detener el envio del lote */
+.maletas-bx form button.reclamo-detener{
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 50px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  background-color: #dc3545;
+  color: #fff;
+  font-size: 1.2rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease, transform 0.1s ease;
+}
+.maletas-bx form button.reclamo-detener[hidden]{
+  display: none;
+}
+.maletas-bx form button.reclamo-detener:hover:not(:disabled){
+  background-color: #bb2d3b;
+}
+.maletas-bx form button.reclamo-detener:active:not(:disabled){
+  transform: scale(0.98);
+}
+.maletas-bx form button.reclamo-detener:focus-visible{
+  outline: 2px solid #094483;
+  outline-offset: 2px;
+}
+.maletas-bx form button.reclamo-detener:disabled{
+  background-color: #e8a1a8;
+  cursor: wait;
+}
 
 /* Responsive del reclamo por lotes */
 @media screen and (max-width: 991.98px){
@@ -620,6 +655,7 @@ header .header .logo {
     font-size: 13px;
   }
   .maletas-bx form .reclamo-acciones button.reclamo-limpiar,
+  .maletas-bx form .reclamo-acciones button.reclamo-detener,
   .maletas-bx form .reclamo-acciones button.registrar{
     height: 44px;
     padding: 8px 14px;
@@ -627,3 +663,14 @@ header .header .logo {
   }
 }
 
+/* El celular convierte en enlace los codigos (parecen telefonos) y las horas de salida (parecen fechas).
+   La etiqueta format-detection del layout lo desactiva; esto es el respaldo si el navegador la ignora. */
+.maletas-bx a[href^="tel:"],
+.maletas-bx a[x-apple-data-detectors],
+.lote-cargando a[href^="tel:"],
+.lote-cargando a[x-apple-data-detectors]{
+  color: inherit !important;
+  font: inherit !important;
+  text-decoration: none !important;
+  pointer-events: none;
+}

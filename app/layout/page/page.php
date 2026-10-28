@@ -50,7 +50,7 @@
   <?php echo $this->_data['scripts'];  ?>
   <script src="https://www.google.com/recaptcha/api.js" async defer></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="format-detection" content="telephone=no">
+  <meta name="format-detection" content="telephone=no, date=no, address=no, email=no">
  
 </head>
 
